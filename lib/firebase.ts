@@ -19,12 +19,14 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const storage = getStorage(app);
 
-// Enable Offline Persistence for Instant Loads
-export const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({
-    tabManager: persistentMultipleTabManager()
-  })
-});
+// Enable Offline Persistence for Instant Loads ONLY in the browser
+export const db = typeof window !== 'undefined'
+  ? initializeFirestore(app, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager()
+      })
+    })
+  : getFirestore(app);
 
 // Initialize Analytics conditionally
 export const analytics = typeof window !== 'undefined' ? 
