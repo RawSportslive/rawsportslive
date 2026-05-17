@@ -46,9 +46,7 @@ export default function Home() {
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-4">
             <Menu className="text-gray-400 cursor-pointer hover:text-white" />
-            <h1 className="text-xl font-bold tracking-tighter italic">
-              RAWSPORTS <span className="text-brand-red">LIVE</span>
-            </h1>
+            <img src="/logo.png" alt="RawSports Live" className="h-10 object-contain" />
           </div>
           <div className="flex items-center gap-5">
             <Search size={20} className="text-gray-400 cursor-pointer hover:text-white" />
