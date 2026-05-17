@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, query, where, addDoc, serverTimestamp, writeBatch, doc } from 'firebase/firestore';
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const CHANNEL_ID = 'UCJ5v_MCY6GNUBTO8-D3XoAg';
@@ -18,8 +18,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'YouTube API Key not configured' }, { status: 500 });
     }
 
-    // Fetch latest videos
-    const ytUrl = `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_API_KEY}&channelId=${CHANNEL_ID}&part=snippet,id&order=date&maxResults=25`;
+    // Fetch latest videos from YouTube (limit to 15 to keep it fast)
+    const ytUrl = `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_API_KEY}&channelId=${CHANNEL_ID}&part=snippet,id&order=date&maxResults=15`;
     const ytResponse = await fetch(ytUrl);
     const ytData = await ytResponse.json();
 
@@ -28,16 +28,25 @@ export async function GET(request: Request) {
     }
 
     const videos = ytData.items.filter((item: any) => item.id.kind === 'youtube#video');
+    if (videos.length === 0) {
+      return NextResponse.json({ success: true, message: 'No new videos found on YouTube.' });
+    }
+
+    const videoIds = videos.map((video: any) => video.id.videoId);
+
+    // BULK QUERY: Find which of these video IDs already exist in Firestore in a single query
+    const q = query(collection(db, 'youtube_videos'), where('videoId', 'in', videoIds));
+    const querySnapshot = await getDocs(q);
+    const existingVideoIds = new Set(querySnapshot.docs.map(doc => doc.data().videoId));
+
     const syncedVideos = [];
 
+    // Filter out the ones that already exist
     for (const video of videos) {
       const videoId = video.id.videoId;
       const snippet = video.snippet;
-      
-      const q = query(collection(db, 'youtube_videos'), where('videoId', '==', videoId));
-      const querySnapshot = await getDocs(q);
-      
-      if (querySnapshot.empty) {
+
+      if (!existingVideoIds.has(videoId)) {
         // Auto-categorize based on title
         const titleLower = snippet.title.toLowerCase();
         let categories = ['Latest'];
@@ -55,11 +64,11 @@ export async function GET(request: Request) {
           categories.push('Highlights');
         }
         
-        // If it didn't match any specific category, default to Highlights as generic action
         if (categories.length === 1) {
           categories.push('Highlights');
         }
 
+        // Add to database
         await addDoc(collection(db, 'youtube_videos'), {
           videoId: videoId,
           title: snippet.title,
@@ -67,17 +76,20 @@ export async function GET(request: Request) {
           thumbnail: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url,
           publishedAt: snippet.publishedAt,
           channelTitle: snippet.channelTitle,
-          categories: categories, // Store as array for easy queries
+          categories: categories,
           syncedAt: serverTimestamp(),
           syncToken: SYNC_TOKEN
         });
+
         syncedVideos.push(videoId);
       }
     }
 
     return NextResponse.json({ 
       success: true, 
-      message: `Synced ${syncedVideos.length} new videos successfully.`,
+      message: syncedVideos.length > 0 
+        ? `Synced ${syncedVideos.length} new videos successfully.` 
+        : 'Database is already up to date!',
       syncedVideos 
     });
 
