@@ -84,10 +84,18 @@ export default function NewsPage() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex flex-col items-center justify-center py-32 space-y-4">
-          <Loader2 className="w-10 h-10 text-brand-red animate-spin" />
-          <p className="text-gray-500 font-bold text-xs uppercase tracking-widest">Fetching Latest Stories...</p>
+      {articles.length === 0 && loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="animate-pulse space-y-4 bg-white/5 rounded-2xl p-5 border border-white/5">
+              <div className="aspect-[16/10] bg-white/10 rounded-xl" />
+              <div className="space-y-3 mt-4">
+                <div className="h-5 bg-white/10 rounded-lg w-5/6" />
+                <div className="h-4 bg-white/5 rounded-md w-full" />
+                <div className="h-4 bg-white/5 rounded-md w-2/3" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

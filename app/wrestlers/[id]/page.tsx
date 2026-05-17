@@ -89,8 +89,18 @@ export default function WrestlerProfile() {
   };
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-brand-black">
-      <Loader2 className="w-10 h-10 text-brand-red animate-spin" />
+    <div className="min-h-screen pb-24 bg-brand-black animate-pulse">
+      <div className="relative h-[60vh] w-full bg-white/5" />
+      <div className="px-6 space-y-10 mt-6">
+        <section className="grid grid-cols-2 gap-4">
+          <div className="bg-white/5 border border-white/10 h-20 rounded-2xl" />
+          <div className="bg-white/5 border border-white/10 h-20 rounded-2xl" />
+        </section>
+        <section className="space-y-3">
+          <div className="h-4 bg-white/10 rounded w-1/4" />
+          <div className="bg-white/5 border border-white/10 h-32 rounded-2xl" />
+        </section>
+      </div>
     </div>
   );
 

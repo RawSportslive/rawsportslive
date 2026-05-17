@@ -84,9 +84,14 @@ export default function ProfilePage() {
   };
 
   if (loading) return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-brand-black space-y-4">
-      <Loader2 className="w-10 h-10 text-brand-red animate-spin" />
-      <p className="text-gray-500 font-bold text-xs uppercase tracking-widest">Preparing Arena Access...</p>
+    <div className="min-h-screen pb-32 bg-brand-black animate-pulse">
+      <header className="relative pt-16 pb-8 flex flex-col items-center justify-center px-6 border-b border-white/5">
+        <div className="w-24 h-24 rounded-3xl bg-white/5 border border-white/10" />
+        <div className="mt-6 space-y-2 w-1/3">
+          <div className="h-5 bg-white/10 rounded-lg w-full" />
+          <div className="h-3 bg-white/5 rounded-md w-1/2 mx-auto" />
+        </div>
+      </header>
     </div>
   );
 

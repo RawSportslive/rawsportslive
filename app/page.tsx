@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
 import Hero from '@/components/Hero';
 import NewsCard from '@/components/NewsCard';
@@ -18,26 +18,31 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const newsSnap = await getDocs(query(collection(db, 'news'), orderBy('createdAt', 'desc'), limit(6)));
-        const vidsSnap = await getDocs(query(collection(db, 'videos'), orderBy('createdAt', 'desc'), limit(4)));
-        setNews(newsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        setVideos(vidsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, []);
+    // 1. Listen for news updates in real-time
+    const qNews = query(collection(db, 'news'), orderBy('createdAt', 'desc'), limit(6));
+    const unsubscribeNews = onSnapshot(qNews, (snapshot) => {
+      setNews(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setLoading(false);
+    }, (error) => {
+      console.error("News fetch error:", error);
+      setLoading(false);
+    });
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-brand-black">
-      <Loader2 className="text-brand-red animate-spin" size={32} />
-    </div>
-  );
+    // 2. Listen for videos in real-time
+    const qVideos = query(collection(db, 'videos'), orderBy('createdAt', 'desc'), limit(4));
+    const unsubscribeVideos = onSnapshot(qVideos, (snapshot) => {
+      setVideos(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setLoading(false);
+    }, (error) => {
+      console.error("Videos fetch error:", error);
+      setLoading(false);
+    });
+
+    return () => {
+      unsubscribeNews();
+      unsubscribeVideos();
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-brand-black">
