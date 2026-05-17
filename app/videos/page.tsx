@@ -1,13 +1,25 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Image from 'next/image';
-import { PlayCircle, Search, Loader2 } from 'lucide-react';
+import { PlayCircle, Search, Loader2, RefreshCw } from 'lucide-react';
 import VideoPlayer from '@/components/VideoPlayer';
 import { db, auth } from '@/lib/firebase';
-import { collection, query, orderBy, onSnapshot, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
+
+// Decode HTML entities like &quot; &amp; &#39; etc.
+function decodeHtml(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&apos;/g, "'");
+}
 
 const categories = ["All", "RAW", "SmackDown", "WrestleMania", "Classic", "Interviews"];
 
@@ -28,6 +40,7 @@ export default function VideosPage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [historyPositions, setHistoryPositions] = useState<Record<string, number>>({});
   const [startAt, setStartAt] = useState(0);
 
@@ -46,42 +59,39 @@ export default function VideosPage() {
     return () => unsub();
   }, []);
 
-  useEffect(() => {
-    async function fetchAllVideos() {
-      try {
-        // Fetch from old manual 'videos' collection
-        const manualSnap = await getDocs(query(collection(db, 'videos'), orderBy('createdAt', 'desc')));
-        const manualVideos = manualSnap.docs.map(doc => ({
+  const fetchAllVideos = useCallback(async (isRefresh = false) => {
+    if (!isRefresh) setLoading(true);
+    else setRefreshing(true);
+    try {
+      const manualSnap = await getDocs(query(collection(db, 'videos'), orderBy('createdAt', 'desc')));
+      const manualVideos = manualSnap.docs.map(doc => ({
+        id: doc.id, ...doc.data()
+      })) as Video[];
+
+      const ytSnap = await getDocs(query(collection(db, 'youtube_videos'), orderBy('publishedAt', 'desc')));
+      const ytVideos = ytSnap.docs.map(doc => {
+        const data = doc.data();
+        return {
           id: doc.id,
-          ...doc.data()
-        })) as Video[];
+          ytId: data.videoId,
+          title: decodeHtml(data.title),
+          thumbnail: data.thumbnail,
+          category: data.categories?.[1] || data.categories?.[0] || 'Latest',
+          categories: data.categories,
+          publishedAt: data.publishedAt,
+        } as Video;
+      });
 
-        // Fetch from new auto-synced 'youtube_videos' collection
-        const ytSnap = await getDocs(query(collection(db, 'youtube_videos'), orderBy('publishedAt', 'desc')));
-        const ytVideos = ytSnap.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ytId: data.videoId,
-            title: data.title,
-            thumbnail: data.thumbnail,
-            category: data.categories?.[1] || data.categories?.[0] || 'Latest',
-            categories: data.categories,
-            publishedAt: data.publishedAt,
-          } as Video;
-        });
-
-        // Merge: manual videos first, then auto-synced ones
-        setVideos([...manualVideos, ...ytVideos]);
-      } catch (error) {
-        console.error("Error fetching videos:", error);
-      } finally {
-        setLoading(false);
-      }
+      setVideos([...manualVideos, ...ytVideos]);
+    } catch (error) {
+      console.error("Error fetching videos:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-
-    fetchAllVideos();
   }, []);
+
+  useEffect(() => { fetchAllVideos(); }, [fetchAllVideos]);
 
   // Auto-open video from Watch History (resume feature)
   useEffect(() => {
@@ -115,14 +125,27 @@ export default function VideosPage() {
       );
 
   return (
-    <div className="min-h-screen pt-12 pb-24 px-6 space-y-8 bg-brand-black">
-      <header className="space-y-2">
-        <h1 className="text-3xl md:text-4xl font-bold uppercase tracking-tight text-white">
-          LATEST <span className="text-brand-red">VIDEOS</span>
-        </h1>
-        <p className="text-gray-400 text-sm font-medium max-w-sm">
-          The most impactful moments in sports entertainment, updated daily.
-        </p>
+    <div className="min-h-screen pt-4 pb-24 px-6 space-y-6 bg-brand-black">
+      <header className="flex items-center justify-between py-2">
+        <div className="flex items-center gap-3">
+          <img src="/logo.png" alt="RawSports Live" className="h-12 w-12 object-contain rounded-xl" />
+          <div>
+            <h1 className="text-xl font-bold uppercase tracking-tight text-white leading-none">
+              RAWSPORTS <span className="text-brand-red">LIVE</span>
+            </h1>
+            <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest">
+              WWE Video Feed
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => fetchAllVideos(true)}
+          disabled={refreshing}
+          className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-white hover:bg-white/10 transition-all active:scale-95"
+        >
+          <RefreshCw size={14} className={refreshing ? 'animate-spin text-brand-red' : ''} />
+          {refreshing ? 'Syncing...' : 'Refresh'}
+        </button>
       </header>
 
       <div className="flex flex-col md:flex-row gap-4">
