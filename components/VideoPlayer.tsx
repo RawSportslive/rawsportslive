@@ -170,18 +170,28 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
   const toggleFullscreen = async () => {
     if (!containerRef.current) return;
     try {
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
-        if (screen.orientation && (screen.orientation as any).unlock) {
-          (screen.orientation as any).unlock();
+      const doc = document as any;
+      const container = containerRef.current as any;
+      const isFs = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement);
+
+      if (isFs) {
+        const exit = doc.exitFullscreen || doc.webkitExitFullscreen || doc.mozCancelFullScreen || doc.msExitFullscreen;
+        if (exit) {
+          await exit.call(doc);
+        }
+        if (screen.orientation && screen.orientation.unlock) {
+          try { screen.orientation.unlock(); } catch (e) {}
         }
       } else {
-        await containerRef.current.requestFullscreen();
-        if (screen.orientation && (screen.orientation as any).lock) {
-          try {
-            await (screen.orientation as any).lock('landscape');
-          } catch (e) {
-            console.log("Orientation lock not supported or failed");
+        const req = container.requestFullscreen || container.webkitRequestFullscreen || container.mozRequestFullScreen || container.msRequestFullscreen;
+        if (req) {
+          await req.call(container);
+          if (screen.orientation && screen.orientation.lock) {
+            try {
+              await screen.orientation.lock('landscape');
+            } catch (e) {
+              console.log("Landscape lock failed:", e);
+            }
           }
         }
       }

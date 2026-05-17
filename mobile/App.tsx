@@ -17,6 +17,8 @@ Notifications.setNotificationHandler({
   }),
 });
 
+import { View, SafeAreaView, Platform } from 'react-native';
+
 export default function App() {
   useEffect(() => {
     // Request permission for push notifications
@@ -31,9 +33,6 @@ export default function App() {
         console.log('Failed to get push token for push notification!');
         return;
       }
-      // Get the token (can be saved to Firestore for backend push)
-      // const token = (await Notifications.getExpoPushTokenAsync()).data;
-      // console.log("Expo Push Token:", token);
     };
 
     registerForPushNotifications();
@@ -41,8 +40,12 @@ export default function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <VideoFeedScreen />
-      <StatusBar style="light" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#e11d48' }}>
+        <View style={{ flex: 1, backgroundColor: '#050505' }}>
+          <VideoFeedScreen />
+        </View>
+      </SafeAreaView>
+      <StatusBar style="light" backgroundColor="#e11d48" translucent={false} />
     </QueryClientProvider>
   );
 }

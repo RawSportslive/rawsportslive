@@ -33,6 +33,8 @@ import { CategoryTabs } from '../components/CategoryTabs';
 import { VideoCard } from '../components/VideoCard';
 import { SkeletonLoader } from '../components/SkeletonLoader';
 
+import * as ScreenOrientation from 'expo-screen-orientation';
+
 const { width, height } = Dimensions.get('window');
 const PAGE_SIZE = 6;
 
@@ -40,6 +42,26 @@ export const VideoFeedScreen = () => {
   const [activeCategory, setActiveCategory] = useState('Latest');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
+
+  // Auto rotate to landscape when a video is selected (fullscreen), and portrait when closed
+  useEffect(() => {
+    async function changeOrientation() {
+      if (selectedVideo) {
+        try {
+          await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+        } catch (e) {
+          console.log("ScreenOrientation landscape lock error:", e);
+        }
+      } else {
+        try {
+          await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+        } catch (e) {
+          console.log("ScreenOrientation portrait lock error:", e);
+        }
+      }
+    }
+    changeOrientation();
+  }, [selectedVideo]);
   
   // Data states
   const [videos, setVideos] = useState<any[]>([]);
