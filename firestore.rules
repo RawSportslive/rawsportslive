@@ -1,0 +1,113 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- HELPER FUNCTIONS ---
+    
+    // Check if the user is signed in
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // Check if the user is accessing their own document
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    // Check if the user is an admin
+    // This requires a document in the 'admins' collection named with the user's UID
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // --- COLLECTION RULES ---
+
+    // 1. Connection Test (used by lib/firebase.ts)
+    match /_connection_test_/{docId} {
+      allow read: if true;
+    }
+
+    // 2. User Profiles
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
+
+      // Sub-collections for history and bookmarks
+      match /history/{id} {
+        allow read, write: if isOwner(userId);
+      }
+      match /bookmarks/{id} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // 3. Public Content (News, Videos, Wrestlers, Quizzes)
+    // Anyone can read, only admins can write
+    match /news/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /videos/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /wrestlers/{id} {
+      allow read: if true;
+      // Admins can write anything; signed-in users can only update the 'followers' array
+      allow write: if isAdmin();
+      allow update: if isSignedIn() && 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']);
+    }
+    
+    match /quizzes/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 4. Admin List
+    match /admins/{adminId} {
+      // Allow specific email to self-promote to admin
+      allow create: if request.auth.token.email == 'sportsview60@gmail.com' && request.auth.uid == adminId;
+      allow read: if isOwner(adminId);
+      allow write: if false; // General writes are still restricted
+    }
+    
+    match /admin/{adminId} {
+      allow create: if request.auth.token.email == 'sportsview60@gmail.com' && request.auth.uid == adminId;
+      allow read: if isOwner(adminId);
+      allow write: if false;
+    }
+
+    // 5. Restored ROSTER
+    match /ROSTER/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+      allow update: if isSignedIn() && 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']);
+    }
+    
+    match /roster/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+      allow update: if isSignedIn() && 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']);
+    }
+
+    // 6. YouTube Videos
+    match /youtube_videos/{id} {
+      allow read: if true;
+      allow write: if isAdmin() || request.resource.data.syncToken == "ringzone-cron-secret-2026";
+    }
+
+    // 7. Default Deny for everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

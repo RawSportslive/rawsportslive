@@ -1,0 +1,100 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User account information and preferences",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "bio": { "type": "string" },
+        "favoriteWrestlerId": { "type": "string" },
+        "points": { "type": "number" },
+        "savedVideos": { "type": "array" },
+        "savedWallpapers": { "type": "array" },
+        "isAdmin": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "News": {
+      "title": "Wrestling News",
+      "description": "News articles and updates",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "category": { "type": "string", "enum": ["General", "RAW", "SmackDown", "NXT", "Rumors"] },
+        "imageUrl": { "type": "string" },
+        "authorId": { "type": "string" },
+        "likes": { "type": "number" },
+        "commentsCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Video": {
+      "title": "Featured Video",
+      "description": "Embedded YouTube wrestling content",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "youtubeId": { "type": "string" },
+        "category": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "featured": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Wrestler": {
+      "title": "Wrestler Profile",
+      "description": "Information about a professional wrestler",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "bio": { "type": "string" },
+        "biography": { "type": "string", "description": "Detailed history and career achievements" },
+        "image": { "type": "string" },
+        "championships": { "type": "array" },
+        "signatureMoves": { "type": "array" },
+        "stats": { "type": "object" },
+        "fanRating": { "type": "number" },
+        "ratingCount": { "type": "number" }
+      }
+    },
+    "Quiz": {
+      "title": "Wrestling Quiz",
+      "description": "Trivia questions for users",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "difficulty": { "type": "string" },
+        "questions": { "type": "array" },
+        "points": { "type": "number" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Secure user profiles"
+    },
+    "/news/{newsId}": {
+      "schema": "News",
+      "description": "Articles accessible by everyone"
+    },
+    "/videos/{videoId}": {
+      "schema": "Video",
+      "description": "Curated video links"
+    },
+    "/wrestlers/{wrestlerId}": {
+      "schema": "Wrestler",
+      "description": "Wrestler biographies and stats"
+    },
+    "/quizzes/{quizId}": {
+      "schema": "Quiz",
+      "description": "Interactive trivia"
+    }
+  }
+}

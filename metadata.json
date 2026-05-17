@@ -1,0 +1,15 @@
+{
+  "name": "RingZone",
+  "description": "The ultimate wrestling and sports entertainment app. Trending news, athlete profiles, official videos, and real-time match updates in a premium, high-octane experience.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "Authentication",
+    "Real-time Database",
+    "Push Notifications",
+    "Video Streaming"
+  ]
+}
