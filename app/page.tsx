@@ -47,17 +47,17 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-brand-black">
       {/* Top Bar */}
-      <header className="sticky top-0 z-50 bg-brand-black/80 backdrop-blur-md border-b border-white/5">
+      <header className="sticky top-0 z-50 bg-brand-red shadow-lg shadow-brand-red/35 border-b border-red-700/30">
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-4">
-            <Menu className="text-gray-400 cursor-pointer hover:text-white" />
+            <Menu className="text-white cursor-pointer hover:text-red-100" />
             <img src="/logo.png" alt="RawSports Live" className="h-10 object-contain" />
           </div>
           <div className="flex items-center gap-5">
-            <Search size={20} className="text-gray-400 cursor-pointer hover:text-white" />
+            <Search size={20} className="text-white cursor-pointer hover:text-red-100" />
             <div className="relative cursor-pointer group">
-              <Bell size={20} className="text-gray-400 group-hover:text-white" />
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-brand-red rounded-full border-2 border-brand-black" />
+              <Bell size={20} className="text-white group-hover:text-red-100" />
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-white rounded-full border-2 border-brand-red" />
             </div>
           </div>
         </div>

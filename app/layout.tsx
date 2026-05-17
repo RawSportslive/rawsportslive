@@ -40,6 +40,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://firestore.googleapis.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://www.googleapis.com" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        
+        {/* Bulletproof status bar filled red color */}
+        <meta name="theme-color" content="#e11d48" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body suppressHydrationWarning className="bg-brand-black text-white selection:bg-brand-red selection:text-white">
         <ClientLayout>{children}</ClientLayout>
