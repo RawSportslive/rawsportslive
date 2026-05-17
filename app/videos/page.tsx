@@ -17,8 +17,10 @@ interface Video {
   url?: string;
   title: string;
   category: string;
+  categories?: string[];
   thumbnail: string;
   createdAt?: any;
+  publishedAt?: string;
 }
 
 export default function VideosPage() {
@@ -44,22 +46,41 @@ export default function VideosPage() {
     return () => unsub();
   }, []);
 
-
   useEffect(() => {
-    const q = query(collection(db, 'videos'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const videoData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Video[];
-      setVideos(videoData);
-      setLoading(false);
-    }, (error) => {
-      console.error("Error fetching videos:", error);
-      setLoading(false);
-    });
+    async function fetchAllVideos() {
+      try {
+        // Fetch from old manual 'videos' collection
+        const manualSnap = await getDocs(query(collection(db, 'videos'), orderBy('createdAt', 'desc')));
+        const manualVideos = manualSnap.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Video[];
 
-    return () => unsubscribe();
+        // Fetch from new auto-synced 'youtube_videos' collection
+        const ytSnap = await getDocs(query(collection(db, 'youtube_videos'), orderBy('publishedAt', 'desc')));
+        const ytVideos = ytSnap.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ytId: data.videoId,
+            title: data.title,
+            thumbnail: data.thumbnail,
+            category: data.categories?.[1] || data.categories?.[0] || 'Latest',
+            categories: data.categories,
+            publishedAt: data.publishedAt,
+          } as Video;
+        });
+
+        // Merge: manual videos first, then auto-synced ones
+        setVideos([...manualVideos, ...ytVideos]);
+      } catch (error) {
+        console.error("Error fetching videos:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchAllVideos();
   }, []);
 
   // Auto-open video from Watch History (resume feature)
@@ -88,7 +109,10 @@ export default function VideosPage() {
 
   const filteredVideos = activeCategory === "All" 
     ? videos 
-    : videos.filter(v => v.category === activeCategory);
+    : videos.filter(v => 
+        v.category === activeCategory || 
+        v.categories?.includes(activeCategory)
+      );
 
   return (
     <div className="min-h-screen pt-12 pb-24 px-6 space-y-8 bg-brand-black">
