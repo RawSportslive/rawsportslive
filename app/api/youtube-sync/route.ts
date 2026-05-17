@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where, addDoc, serverTimestamp, writeBatch, doc } from 'firebase/firestore';
+import { adminDb } from '@/lib/firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const CHANNEL_ID = 'UCJ5v_MCY6GNUBTO8-D3XoAg';
-const SYNC_TOKEN = "ringzone-cron-secret-2026"; // Must match firestore.rules
+const SYNC_TOKEN = "ringzone-cron-secret-2026";
+
+export const maxDuration = 30; // Allow up to 30s on Vercel Hobby
 
 export async function GET(request: Request) {
   try {
+    // Auth check
     const { searchParams } = new URL(request.url);
     const authHeader = request.headers.get('authorization');
     if (authHeader !== `Bearer ${SYNC_TOKEN}` && searchParams.get('token') !== SYNC_TOKEN) {
@@ -15,82 +18,77 @@ export async function GET(request: Request) {
     }
 
     if (!YOUTUBE_API_KEY) {
-      return NextResponse.json({ error: 'YouTube API Key not configured' }, { status: 500 });
+      return NextResponse.json({ error: 'YOUTUBE_API_KEY not configured' }, { status: 500 });
     }
 
-    // Fetch latest videos from YouTube (limit to 15 to keep it fast)
-    const ytUrl = `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_API_KEY}&channelId=${CHANNEL_ID}&part=snippet,id&order=date&maxResults=15`;
-    const ytResponse = await fetch(ytUrl);
-    const ytData = await ytResponse.json();
+    // 1. Fetch latest 15 videos from YouTube
+    const ytUrl = `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_API_KEY}&channelId=${CHANNEL_ID}&part=snippet,id&order=date&maxResults=15&type=video`;
+    const ytRes = await fetch(ytUrl);
+    const ytData = await ytRes.json();
 
-    if (!ytResponse.ok) {
-      return NextResponse.json({ error: ytData.error?.message || 'Failed to fetch YouTube API' }, { status: 500 });
+    if (!ytRes.ok) {
+      return NextResponse.json({ error: ytData.error?.message || 'YouTube API error' }, { status: 500 });
     }
 
-    const videos = ytData.items.filter((item: any) => item.id.kind === 'youtube#video');
+    const videos = (ytData.items || []).filter((item: any) => item.id?.videoId);
     if (videos.length === 0) {
-      return NextResponse.json({ success: true, message: 'No new videos found on YouTube.' });
+      return NextResponse.json({ success: true, message: 'No videos found from YouTube.', syncedVideos: [] });
     }
 
-    const videoIds = videos.map((video: any) => video.id.videoId);
+    const videoIds = videos.map((v: any) => v.id.videoId);
 
-    // BULK QUERY: Find which of these video IDs already exist in Firestore in a single query
-    const q = query(collection(db, 'youtube_videos'), where('videoId', 'in', videoIds));
-    const querySnapshot = await getDocs(q);
-    const existingVideoIds = new Set(querySnapshot.docs.map(doc => doc.data().videoId));
+    // 2. Bulk check which video IDs already exist using Admin SDK (fast, no timeout)
+    const existingSnap = await adminDb
+      .collection('youtube_videos')
+      .where('videoId', 'in', videoIds)
+      .select('videoId')
+      .get();
 
-    const syncedVideos = [];
+    const existingIds = new Set(existingSnap.docs.map(d => d.data().videoId));
 
-    // Filter out the ones that already exist
+    // 3. Write new videos using a batch (fast atomic write)
+    const batch = adminDb.batch();
+    const syncedVideos: string[] = [];
+
     for (const video of videos) {
       const videoId = video.id.videoId;
+      if (existingIds.has(videoId)) continue;
+
       const snippet = video.snippet;
+      const titleLower = snippet.title.toLowerCase();
+      const categories = ['Latest'];
 
-      if (!existingVideoIds.has(videoId)) {
-        // Auto-categorize based on title
-        const titleLower = snippet.title.toLowerCase();
-        let categories = ['Latest'];
-        
-        if (titleLower.includes('raw')) {
-          categories.push('RAW');
-        }
-        if (titleLower.includes('smackdown') || titleLower.includes('smack down')) {
-          categories.push('SmackDown');
-        }
-        if (titleLower.includes('wrestlemania') || titleLower.includes('wrestle mania')) {
-          categories.push('WrestleMania');
-        }
-        if (titleLower.includes('highlight') || titleLower.includes('top 10') || titleLower.includes('moments') || titleLower.includes('full match')) {
-          categories.push('Highlights');
-        }
-        
-        if (categories.length === 1) {
-          categories.push('Highlights');
-        }
+      if (titleLower.includes('raw')) categories.push('RAW');
+      if (titleLower.includes('smackdown') || titleLower.includes('smack down')) categories.push('SmackDown');
+      if (titleLower.includes('wrestlemania')) categories.push('WrestleMania');
+      if (titleLower.includes('highlight') || titleLower.includes('top 10') || titleLower.includes('moments') || titleLower.includes('full match')) categories.push('Highlights');
+      if (categories.length === 1) categories.push('Highlights');
 
-        // Add to database
-        await addDoc(collection(db, 'youtube_videos'), {
-          videoId: videoId,
-          title: snippet.title,
-          description: snippet.description,
-          thumbnail: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url,
-          publishedAt: snippet.publishedAt,
-          channelTitle: snippet.channelTitle,
-          categories: categories,
-          syncedAt: serverTimestamp(),
-          syncToken: SYNC_TOKEN
-        });
+      const ref = adminDb.collection('youtube_videos').doc();
+      batch.set(ref, {
+        videoId,
+        title: snippet.title,
+        description: snippet.description || '',
+        thumbnail: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url || '',
+        publishedAt: snippet.publishedAt,
+        channelTitle: snippet.channelTitle,
+        categories,
+        syncedAt: FieldValue.serverTimestamp(),
+      });
 
-        syncedVideos.push(videoId);
-      }
+      syncedVideos.push(videoId);
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      message: syncedVideos.length > 0 
-        ? `Synced ${syncedVideos.length} new videos successfully.` 
-        : 'Database is already up to date!',
-      syncedVideos 
+    if (syncedVideos.length > 0) {
+      await batch.commit();
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: syncedVideos.length > 0
+        ? `✅ Synced ${syncedVideos.length} new WWE video(s)!`
+        : '✅ Database is already up to date!',
+      syncedVideos,
     });
 
   } catch (error: any) {
