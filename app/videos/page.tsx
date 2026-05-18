@@ -124,8 +124,34 @@ export default function VideosPage() {
         v.categories?.includes(activeCategory)
       );
 
+  const videoFeedSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "itemListElement": videos.slice(0, 10).map((video, index) => {
+      const videoUrl = video.url || `https://www.youtube.com/watch?v=${video.ytId}`;
+      const finalThumb = video.thumbnail || `https://img.youtube.com/vi/${video.ytId}/maxresdefault.jpg`;
+
+      return {
+        "@type": "ListItem",
+        "position": index + 1,
+        "item": {
+          "@type": "VideoObject",
+          "name": video.title,
+          "description": `Watch ${video.title} replays and full match highlights on RawSports Live.`,
+          "thumbnailUrl": finalThumb,
+          "uploadDate": video.publishedAt || new Date().toISOString(),
+          "embedUrl": videoUrl
+        }
+      };
+    })
+  };
+
   return (
     <div className="min-h-screen pt-4 pb-24 px-6 space-y-6 bg-brand-black">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(videoFeedSchema) }}
+      />
       <header className="flex items-center justify-between py-2">
         <div className="flex items-center gap-3">
           <img src="/logo.png" alt="RawSports Live" className="h-12 w-12 object-contain rounded-xl" />

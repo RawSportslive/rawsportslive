@@ -47,8 +47,39 @@ export default function NewsPage() {
     ? articles 
     : articles.filter(a => a.category === activeCategory);
 
+  const newsSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "itemListElement": articles.slice(0, 10).map((article, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "item": {
+        "@type": "NewsArticle",
+        "headline": article.title,
+        "description": article.excerpt,
+        "image": article.image,
+        "author": {
+          "@type": "Person",
+          "name": article.author
+        },
+        "publisher": {
+          "@type": "SportsOrganization",
+          "name": "RawSports Live",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://rawsportslive.vercel.app/logo.png"
+          }
+        }
+      }
+    }))
+  };
+
   return (
     <div className="min-h-screen pt-12 pb-24 px-6 space-y-8 bg-brand-black">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(newsSchema) }}
+      />
       <header className="space-y-2">
         <h1 className="text-3xl md:text-4xl font-bold uppercase tracking-tight text-white">
           LATEST <span className="text-brand-red">NEWS</span>

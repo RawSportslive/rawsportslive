@@ -133,11 +133,35 @@ button.bg-brand-red *,
 }
 
 /* Black Sticky Top Bar Header */
-header,
-header *,
-header svg,
-header button {
+.app-top-header,
+.app-top-header *,
+.app-top-header svg,
+.app-top-header button {
   color: #ffffff !important;
+}
+
+/* Hero Dark Slider Text Exceptions (Must remain white!) */
+.hero-dark-slider,
+.hero-dark-slider *,
+.hero-dark-slider svg,
+.hero-dark-slider p,
+.hero-dark-slider span,
+.hero-dark-slider h1,
+.hero-dark-slider h2,
+.hero-dark-slider button {
+  color: #ffffff !important;
+}
+
+.hero-dark-slider .bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+.hero-dark-slider .border-white\/20 {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Ensure Brand Red text is always solid red, even inside text-white parent elements */
+.text-brand-red {
+  color: #ff0000 !important;
 }
 
 /* Video Player internal elements (Play head, controls overlay, volume, share) */

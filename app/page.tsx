@@ -44,10 +44,39 @@ export default function Home() {
     };
   }, []);
 
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "RawSports Live",
+    "url": "https://rawsportslive.vercel.app",
+    "description": "Watch the latest WWE matches, replays, highlights, RAW, SmackDown, NXT, and WrestleMania videos.",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://rawsportslive.vercel.app/videos?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  };
+
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "SportsOrganization",
+    "name": "RawSports Live",
+    "url": "https://rawsportslive.vercel.app",
+    "logo": "https://rawsportslive.vercel.app/logo.png"
+  };
+
   return (
     <div className="min-h-screen bg-brand-black">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
       {/* Top Bar */}
-      <header className="sticky top-0 z-50 bg-black shadow-lg border-b border-white/5">
+      <header className="sticky top-0 z-50 bg-black shadow-lg border-b border-white/5 app-top-header">
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-4">
             <Menu className="text-white cursor-pointer hover:text-red-100" />

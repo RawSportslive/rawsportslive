@@ -56,7 +56,7 @@ export default function Hero() {
   const prevSlide = () => setCurrent((prev) => (prev - 1 + HERO_POSTS.length) % HERO_POSTS.length);
 
   return (
-    <section className="relative h-[55vh] md:h-[65vh] w-full overflow-hidden bg-brand-black">
+    <section className="relative h-[55vh] md:h-[65vh] w-full overflow-hidden bg-brand-black hero-dark-slider">
       <AnimatePresence mode="popLayout">
         <motion.div
           key={current}

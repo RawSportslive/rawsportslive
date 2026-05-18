@@ -13,16 +13,48 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'RawSports Live – WWE Videos & Highlights',
-  description: 'Watch the latest WWE matches, highlights, RAW, SmackDown, and WrestleMania videos on RawSports Live.',
+  title: 'RawSports Live – WWE Videos, Highlights & Roster',
+  description: 'Watch the latest WWE matches, replays, highlights, RAW, SmackDown, NXT, and WrestleMania videos. View dynamic rosters, wrestling news, statistics, and trivia.',
+  keywords: ['WWE', 'RawSports Live', 'WWE Highlights', 'WWE Replays', 'WrestleMania', 'RAW Matches', 'SmackDown Live', 'NXT', 'Cody Rhodes', 'Roman Reigns', 'Wrestling Trivia', 'WWE Stats'],
   icons: {
     icon: '/logo.png',
     apple: '/logo.png',
     shortcut: '/logo.png',
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  alternates: {
+    canonical: 'https://rawsportslive.vercel.app',
+  },
   openGraph: {
-    title: 'RawSports Live',
-    description: 'The ultimate WWE video streaming experience.',
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://rawsportslive.vercel.app',
+    siteName: 'RawSports Live',
+    title: 'RawSports Live – WWE Videos, Highlights & Roster',
+    description: 'Watch the latest WWE matches, highlights, RAW, SmackDown, NXT, and WrestleMania videos. View superstar profiles, stats, and climb the trivia leaderboard.',
+    images: [
+      {
+        url: '/logo.png',
+        width: 512,
+        height: 512,
+        alt: 'RawSports Live Logo',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'RawSports Live – WWE Videos & Highlights',
+    description: 'Watch the latest WWE matches, highlights, RAW, SmackDown, NXT, and WrestleMania videos on RawSports Live.',
     images: ['/logo.png'],
   },
 };
