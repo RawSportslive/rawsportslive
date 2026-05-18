@@ -353,7 +353,8 @@ export const VideoFeedScreen = () => {
             style={styles.closeButton}
             onPress={() => setSelectedVideo(null)}
           >
-            <X color="#fff" size={24} />
+            <X color="#fff" size={16} />
+            <Text style={styles.closeButtonText}>CLOSE</Text>
           </TouchableOpacity>
         </View>
       </Modal>
@@ -505,12 +506,24 @@ const styles = StyleSheet.create({
     top: 40,
     right: 20,
     zIndex: 9999,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#ff0000',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+    shadowColor: '#ff0000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+    letterSpacing: 1.2,
   },
   playerWrapper: {
     flex: 1,

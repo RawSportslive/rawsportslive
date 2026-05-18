@@ -273,10 +273,11 @@ export default function VideosPage() {
           >
             <button 
               onClick={() => setSelectedVideo(null)}
-              className="absolute top-6 right-6 md:top-8 md:right-8 p-3 rounded-full bg-black/60 hover:bg-brand-red text-white transition-all backdrop-blur-md border border-white/10 z-[110] shadow-2xl flex items-center justify-center group active:scale-95"
+              className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-red hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider transition-all z-[110] shadow-[0_4px_20px_rgba(255,0,0,0.4)] active:scale-95"
               aria-label="Close Player"
             >
-              <X size={24} className="group-hover:scale-110 transition-transform" />
+              <X size={16} />
+              <span>Close Player</span>
             </button>
             <div className="w-full max-w-6xl">
               <VideoPlayer 
