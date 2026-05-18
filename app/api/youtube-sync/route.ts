@@ -6,6 +6,7 @@ const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const CHANNEL_ID = 'UCJ5v_MCY6GNUBTO8-D3XoAg';
 const SYNC_TOKEN = "ringzone-cron-secret-2026";
 
+export const dynamic = 'force-dynamic';
 export const maxDuration = 30; // Allow up to 30s on Vercel Hobby
 
 export async function GET(request: Request) {
@@ -23,7 +24,7 @@ export async function GET(request: Request) {
 
     // 1. Fetch latest 15 videos from YouTube
     const ytUrl = `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_API_KEY}&channelId=${CHANNEL_ID}&part=snippet,id&order=date&maxResults=15&type=video`;
-    const ytRes = await fetch(ytUrl);
+    const ytRes = await fetch(ytUrl, { cache: 'no-store' });
     const ytData = await ytRes.json();
 
     if (!ytRes.ok) {

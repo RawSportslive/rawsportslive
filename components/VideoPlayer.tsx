@@ -186,13 +186,21 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
         const req = container.requestFullscreen || container.webkitRequestFullscreen || container.mozRequestFullScreen || container.msRequestFullscreen;
         if (req) {
           await req.call(container);
-          if (screen.orientation && screen.orientation.lock) {
-            try {
-              await screen.orientation.lock('landscape');
-            } catch (e) {
-              console.log("Landscape lock failed:", e);
+          // Wait for the browser to transition to fullscreen before locking orientation
+          setTimeout(async () => {
+            const orientation = screen.orientation as any;
+            if (orientation && orientation.lock) {
+              try {
+                await orientation.lock('landscape');
+              } catch (e) {
+                try {
+                  await orientation.lock('landscape-primary');
+                } catch (err2) {
+                  console.log("Landscape lock failed:", err2);
+                }
+              }
             }
-          }
+          }, 250);
         }
       }
     } catch (err) {

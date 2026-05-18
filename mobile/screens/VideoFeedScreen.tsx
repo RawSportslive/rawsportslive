@@ -370,8 +370,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 15,
+    paddingTop: 12,
+    paddingBottom: 12,
+    backgroundColor: '#ff0000',
   },
   headerTitle: {
     color: '#fff',
@@ -381,14 +382,14 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   badge: {
-    backgroundColor: '#ff0000',
+    backgroundColor: '#fff',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
     marginLeft: 10,
   },
   badgeText: {
-    color: '#fff',
+    color: '#ff0000',
     fontSize: 10,
     fontWeight: 'bold',
   },

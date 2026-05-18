@@ -40,12 +40,12 @@ export default function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#e11d48' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#ff0000' }}>
         <View style={{ flex: 1, backgroundColor: '#050505' }}>
           <VideoFeedScreen />
         </View>
       </SafeAreaView>
-      <StatusBar style="light" backgroundColor="#e11d48" translucent={false} />
+      <StatusBar style="light" backgroundColor="#ff0000" translucent={false} />
     </QueryClientProvider>
   );
 }
