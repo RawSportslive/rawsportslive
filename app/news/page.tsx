@@ -202,9 +202,10 @@ export default function NewsPage() {
             >
               <button 
                 onClick={() => setSelectedArticle(null)}
-                className="absolute top-6 right-6 z-10 p-3 rounded-full bg-black/60 hover:bg-brand-red text-white transition-all backdrop-blur-md border border-white/10"
+                className="absolute right-6 z-10 p-3 rounded-full bg-black/60 hover:bg-brand-red transition-all backdrop-blur-md border border-white/10"
+                style={{ top: 'calc(env(safe-area-inset-top, 0px) + 24px)', color: '#ffffff' }}
               >
-                <X size={24} />
+                <X size={24} style={{ color: '#ffffff' }} />
               </button>
 
               <div className="relative w-full h-[300px] md:h-[450px]">

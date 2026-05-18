@@ -109,7 +109,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       )}
 
       <ContentPreloader />
-      <main className={`${isAdminPage ? '' : 'pb-24'} min-h-screen flex flex-col`}>
+      <main className={`${isAdminPage ? '' : 'pb-24'} min-h-screen flex flex-col`} style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
         {children}
       </main>
       <BottomNav />

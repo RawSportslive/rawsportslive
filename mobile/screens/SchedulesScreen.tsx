@@ -9,7 +9,8 @@ import {
   ScrollView,
   Image,
   Dimensions,
-  TouchableOpacity
+  TouchableOpacity,
+  Platform
 } from 'react-native';
 import { SportsSelector } from '../components/SportsSelector';
 import { useFixtures, useStandings } from '../hooks/useSportsData';
@@ -79,7 +80,7 @@ export const SchedulesScreen = () => {
       {/* Main Content Area */}
       {isLoading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator color="#FFBF00" size="large" />
+          <ActivityIndicator color="#E50914" size="large" />
           <Text style={styles.loadingText}>Fetching arena data...</Text>
         </View>
       ) : subTab === 'fixtures' ? (
@@ -92,7 +93,7 @@ export const SchedulesScreen = () => {
             <RefreshControl
               refreshing={loadingFixtures}
               onRefresh={handleRefresh}
-              tintColor="#FFBF00"
+              tintColor="#E50914"
             />
           }
           renderItem={({ item }) => (
@@ -163,7 +164,7 @@ export const SchedulesScreen = () => {
                 <Text style={[styles.cellHeader, { width: 40 }]}>W</Text>
                 {activeSport === 'football' && <Text style={[styles.cellHeader, { width: 40 }]}>D</Text>}
                 <Text style={[styles.cellHeader, { width: 40 }]}>L</Text>
-                <Text style={[styles.cellHeader, { width: 50, color: '#FFBF00' }]}>PTS</Text>
+                <Text style={[styles.cellHeader, { width: 50, color: '#E50914' }]}>PTS</Text>
                 <Text style={[styles.cellHeader, { width: 100 }]}>FORM</Text>
               </View>
 
@@ -220,9 +221,11 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingTop: Platform.OS === 'ios' ? 12 : 36,
     paddingBottom: 12,
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#050505',
+    borderBottomWidth: 1,
+    borderBottomColor: '#151515',
   },
   headerTitle: {
     color: '#ffffff',
@@ -232,7 +235,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   headerSubtitle: {
-    color: '#ffffffcc',
+    color: '#aaaaaa',
     fontSize: 9,
     fontWeight: 'bold',
     letterSpacing: 1.5,
@@ -258,7 +261,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   activeTab: {
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#E50914',
   },
   inactiveTab: {
     backgroundColor: 'transparent',
@@ -308,7 +311,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   fixtureLeague: {
-    color: '#FFBF00',
+    color: '#E50914',
     fontSize: 11,
     fontWeight: '900',
   },
@@ -358,7 +361,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   vsText: {
-    color: '#FFBF00',
+    color: '#E50914',
     fontSize: 14,
     fontWeight: '900',
     fontStyle: 'italic',

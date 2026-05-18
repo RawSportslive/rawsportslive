@@ -75,7 +75,7 @@ export default function App() {
       <View style={{ flex: 1, backgroundColor: '#050505' }}>
         {/* Bulletproof iOS status bar color filler */}
         {Platform.OS === 'ios' && (
-          <SafeAreaView style={{ flex: 0, backgroundColor: '#FFBF00' }} />
+          <SafeAreaView style={{ flex: 0, backgroundColor: '#050505' }} />
         )}
         
         <SafeAreaView style={{ flex: 1, backgroundColor: '#050505' }}>
@@ -93,9 +93,9 @@ export default function App() {
               onPress={() => setActiveTab('home')}
             >
               <Zap 
-                color={activeTab === 'home' ? '#FFBF00' : '#888888'} 
+                color={activeTab === 'home' ? '#E50914' : '#888888'} 
                 size={20} 
-                fill={activeTab === 'home' ? '#FFBF00' : 'transparent'} 
+                fill={activeTab === 'home' ? '#E50914' : 'transparent'} 
               />
               <Text style={[styles.tabLabel, activeTab === 'home' ? styles.activeLabel : styles.inactiveLabel]}>
                 SPORTS HUB
@@ -109,7 +109,7 @@ export default function App() {
               onPress={() => setActiveTab('schedules')}
             >
               <CalIcon 
-                color={activeTab === 'schedules' ? '#FFBF00' : '#888888'} 
+                color={activeTab === 'schedules' ? '#E50914' : '#888888'} 
                 size={20} 
               />
               <Text style={[styles.tabLabel, activeTab === 'schedules' ? styles.activeLabel : styles.inactiveLabel]}>
@@ -124,9 +124,9 @@ export default function App() {
               onPress={() => setActiveTab('wrestling')}
             >
               <Film 
-                color={activeTab === 'wrestling' ? '#FFBF00' : '#888888'} 
+                color={activeTab === 'wrestling' ? '#E50914' : '#888888'} 
                 size={20} 
-                fill={activeTab === 'wrestling' ? '#FFBF00' : 'transparent'} 
+                fill={activeTab === 'wrestling' ? '#E50914' : 'transparent'} 
               />
               <Text style={[styles.tabLabel, activeTab === 'wrestling' ? styles.activeLabel : styles.inactiveLabel]}>
                 WWE PORTAL
@@ -136,7 +136,7 @@ export default function App() {
         </SafeAreaView>
       </View>
       )}
-      <StatusBar style="light" backgroundColor="#FFBF00" translucent={false} />
+      <StatusBar style="light" backgroundColor="#050505" translucent={true} />
     </QueryClientProvider>
   );
 }
@@ -144,12 +144,12 @@ export default function App() {
 const styles = StyleSheet.create({
   splashContainer: {
     flex: 1,
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#050505',
     justifyContent: 'center',
     alignItems: 'center',
   },
   splashText: {
-    color: '#000000',
+    color: '#FFBF00',
     fontSize: 40,
     fontWeight: '900',
     fontStyle: 'italic',
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   splashTextSmall: {
-    color: '#ffffff',
+    color: '#E50914',
     fontSize: 20,
     fontWeight: 'bold',
     fontStyle: 'normal',
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   activeLabel: {
-    color: '#FFBF00',
+    color: '#E50914',
   },
   inactiveLabel: {
     color: '#888888',

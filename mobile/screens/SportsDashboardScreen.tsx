@@ -9,7 +9,8 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
-  Image
+  Image,
+  Platform
 } from 'react-native';
 import { SportsSelector } from '../components/SportsSelector';
 import { LiveScoreCard } from '../components/LiveScoreCard';
@@ -55,7 +56,9 @@ export const SportsDashboardScreen: React.FC<SportsDashboardScreenProps> = ({ on
       {/* Title Header Banner */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>RAWSPORTS LIVE</Text>
+          <Text style={styles.headerTitle}>
+            RAWSPORTS <Text style={{ color: '#E50914' }}>LIVE</Text>
+          </Text>
           <Text style={styles.headerSubtitle}>MULTI-SPORTS SYSTEM</Text>
         </View>
         <TouchableOpacity 
@@ -78,7 +81,7 @@ export const SportsDashboardScreen: React.FC<SportsDashboardScreenProps> = ({ on
       {activeTickerMatch && (
         <View style={styles.tickerContainer}>
           <View style={styles.tickerIcon}>
-            <Zap color="#FFBF00" size={12} fill="#FFBF00" />
+            <Zap color="#E50914" size={12} fill="#E50914" />
             <Text style={styles.tickerBadgeText}>LIVE ALERT</Text>
           </View>
           <Text style={styles.tickerText} numberOfLines={1}>
@@ -90,7 +93,7 @@ export const SportsDashboardScreen: React.FC<SportsDashboardScreenProps> = ({ on
       {/* Main score feed */}
       {isLoading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator color="#FFBF00" size="large" />
+          <ActivityIndicator color="#E50914" size="large" />
           <Text style={styles.loadingText}>Connecting to Live Score Gateways...</Text>
         </View>
       ) : (
@@ -102,8 +105,8 @@ export const SportsDashboardScreen: React.FC<SportsDashboardScreenProps> = ({ on
             <RefreshControl
               refreshing={isRefetching}
               onRefresh={handleRefresh}
-              tintColor="#FFBF00"
-              colors={['#FFBF00']}
+              tintColor="#E50914"
+              colors={['#E50914']}
             />
           }
           renderItem={({ item }) => <LiveScoreCard match={item} />}
@@ -140,9 +143,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingTop: Platform.OS === 'ios' ? 12 : 36,
     paddingBottom: 12,
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#050505',
+    borderBottomWidth: 1,
+    borderBottomColor: '#151515',
   },
   headerTitle: {
     color: '#ffffff',
@@ -152,7 +157,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
   },
   headerSubtitle: {
-    color: '#ffffffcc',
+    color: '#aaaaaa',
     fontSize: 9,
     fontWeight: 'bold',
     letterSpacing: 1.5,
@@ -162,9 +167,11 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#00000020',
+    backgroundColor: '#151515',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#222222',
   },
   tickerContainer: {
     flexDirection: 'row',
@@ -179,14 +186,14 @@ const styles = StyleSheet.create({
   tickerIcon: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFBF0020',
+    backgroundColor: '#E5091420',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
     gap: 4,
   },
   tickerBadgeText: {
-    color: '#FFBF00',
+    color: '#E50914',
     fontSize: 8,
     fontWeight: '900',
   },
@@ -237,12 +244,12 @@ const styles = StyleSheet.create({
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#E50914',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 25,
     gap: 8,
-    shadowColor: '#FFBF00',
+    shadowColor: '#E50914',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

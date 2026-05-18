@@ -11,6 +11,7 @@ const HERO_POSTS = [
     title: "Monday Night RAW: The Road to SummerSlam",
     description: "Witness the fallout from last night's main event. Roman Reigns returns to face his biggest challenge yet.",
     image: "https://images.unsplash.com/photo-1599058917212-d750089bc07e?q=80&w=2069&auto=format&fit=crop",
+    videoUrl: "https://www.youtube.com/watch?v=F0f19mry_mY"
   },
   {
     id: 2,
@@ -18,6 +19,7 @@ const HERO_POSTS = [
     title: "The Rise of Cody Rhodes: A Hero's Journey",
     description: "Go behind the scenes with the American Nightmare as he prepares for his title defense.",
     image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1920&auto=format&fit=crop",
+    videoUrl: "https://www.youtube.com/watch?v=3M3yU2b0Bic"
   },
   {
     id: 3,
@@ -25,6 +27,7 @@ const HERO_POSTS = [
     title: "NXT Heatwave: Full Match Card Revealed",
     description: "The next generation of superstars prepare for the ultimate showdown in Orlando.",
     image: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1920&auto=format&fit=crop",
+    videoUrl: "https://www.youtube.com/watch?v=9gMvx-bCwtQ"
   },
   {
     id: 4,
@@ -32,6 +35,7 @@ const HERO_POSTS = [
     title: "SmackDown's New Era: The Bloodline Evolves",
     description: "Solo Sikoa takes control of the Bloodline. See what's next for the blue brand's most dominant faction.",
     image: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1920&auto=format&fit=crop",
+    videoUrl: "https://www.youtube.com/watch?v=8b5VjSnd1U0"
   },
   {
     id: 5,
@@ -39,10 +43,16 @@ const HERO_POSTS = [
     title: "Legends of the Ring: The Undertaker's Legacy",
     description: "A deep dive into three decades of darkness. Exclusive interviews and never-before-seen footage.",
     image: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=1920&auto=format&fit=crop",
+    videoUrl: "https://www.youtube.com/watch?v=28v5cE25pSw"
   }
 ];
 
-export default function Hero() {
+interface HeroProps {
+  onWatchNow: (video: { url: string; title: string; thumbnail?: string }) => void;
+  onSchedule: (post: any) => void;
+}
+
+export default function Hero({ onWatchNow, onSchedule }: HeroProps) {
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
@@ -54,6 +64,8 @@ export default function Hero() {
 
   const nextSlide = () => setCurrent((prev) => (prev + 1) % HERO_POSTS.length);
   const prevSlide = () => setCurrent((prev) => (prev - 1 + HERO_POSTS.length) % HERO_POSTS.length);
+
+  const activePost = HERO_POSTS[current];
 
   return (
     <section className="relative h-[55vh] md:h-[65vh] w-full overflow-hidden bg-brand-black hero-dark-slider">
@@ -69,7 +81,7 @@ export default function Hero() {
           {/* Background Image */}
           <div 
             className="absolute inset-0 bg-cover bg-center transition-transform duration-[5000ms] scale-105"
-            style={{ backgroundImage: `url(${HERO_POSTS[current].image})` }}
+            style={{ backgroundImage: `url(${activePost.image})` }}
           />
           {/* Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
@@ -85,24 +97,29 @@ export default function Hero() {
             >
               <div className="space-y-3 md:space-y-4">
                 <h1 className="text-3xl sm:text-4xl md:text-7xl font-bold leading-tight text-white tracking-tight drop-shadow-2xl">
-                  {HERO_POSTS[current].title}
+                  {activePost.title}
                 </h1>
                 <p className="text-gray-100 text-sm sm:text-base md:text-2xl font-medium max-w-3xl leading-relaxed drop-shadow-lg opacity-90">
-                  {HERO_POSTS[current].description}
+                  {activePost.description}
                 </p>
               </div>
 
               <div className="flex items-center gap-2 sm:gap-4">
-                <button className="flex-1 sm:flex-none bg-brand-red hover:bg-red-700 text-white px-4 sm:px-12 py-3 sm:py-5 rounded-xl font-bold uppercase text-[10px] sm:text-sm tracking-widest transition-all flex items-center justify-center gap-2 shadow-2xl">
+                <button 
+                  onClick={() => onWatchNow({ url: activePost.videoUrl, title: activePost.title, thumbnail: activePost.image })}
+                  className="flex-1 sm:flex-none bg-brand-red hover:bg-amber-500 text-white px-4 sm:px-12 py-3 sm:py-5 rounded-xl font-bold uppercase text-[10px] sm:text-sm tracking-widest transition-all flex items-center justify-center gap-2 shadow-2xl"
+                >
                   <Play size={16} className="sm:w-[20px] sm:h-[20px]" fill="currentColor" /> 
                   <span className="whitespace-nowrap">Watch Now</span>
                 </button>
-                <button className="flex-1 sm:flex-none bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 px-4 sm:px-12 py-3 sm:py-5 rounded-xl font-bold uppercase text-[10px] sm:text-sm tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg">
+                <button 
+                  onClick={() => onSchedule(activePost)}
+                  className="flex-1 sm:flex-none bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 px-4 sm:px-12 py-3 sm:py-5 rounded-xl font-bold uppercase text-[10px] sm:text-sm tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg"
+                >
                   <Calendar size={16} className="sm:w-[20px] sm:h-[20px]" /> 
                   <span className="whitespace-nowrap">Schedule</span>
                 </button>
               </div>
-
 
             </motion.div>
           </div>

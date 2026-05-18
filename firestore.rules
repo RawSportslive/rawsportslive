@@ -153,7 +153,13 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // 8. Default Deny for everything else
+    // 8. Legal Documents (Privacy, Terms, Cookies, Data Deletions)
+    match /legal/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 9. Default Deny for everything else
     match /{document=**} {
       allow read, write: if false;
     }

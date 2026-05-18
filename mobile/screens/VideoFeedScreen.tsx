@@ -12,7 +12,8 @@ import {
   TextInput, 
   ScrollView,
   Image,
-  ActivityIndicator
+  ActivityIndicator,
+  Platform
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { 
@@ -94,11 +95,11 @@ export const VideoFeedScreen = () => {
       const featuredSnap = await getDocs(featuredQuery);
       setFeaturedVideos(featuredSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
 
-      // 2. Fetch main feed videos
+      // 2. Fetch main feed videos (unlimited up to 150 items if searching, to enable true real search)
       let q = query(
         collection(db, 'youtube_videos'),
         orderBy('publishedAt', 'desc'),
-        limit(PAGE_SIZE)
+        limit(search.trim() !== '' ? 150 : PAGE_SIZE)
       );
 
       // If a category other than 'Latest' is selected, filter by it
@@ -107,7 +108,7 @@ export const VideoFeedScreen = () => {
           collection(db, 'youtube_videos'),
           where('categories', 'array-contains', category),
           orderBy('publishedAt', 'desc'),
-          limit(PAGE_SIZE)
+          limit(search.trim() !== '' ? 150 : PAGE_SIZE)
         );
       }
 
@@ -119,7 +120,7 @@ export const VideoFeedScreen = () => {
       if (search.trim() !== '') {
         fetchedVideos = fetchedVideos.filter(video => 
           video.title.toLowerCase().includes(search.toLowerCase()) || 
-          video.description.toLowerCase().includes(search.toLowerCase())
+          (video.description && video.description.toLowerCase().includes(search.toLowerCase()))
         );
       }
 
@@ -127,7 +128,7 @@ export const VideoFeedScreen = () => {
       
       if (snap.docs.length > 0) {
         lastDocRef.current = snap.docs[snap.docs.length - 1];
-        setHasMore(snap.docs.length === PAGE_SIZE);
+        setHasMore(search.trim() !== '' ? false : snap.docs.length === PAGE_SIZE);
       } else {
         lastDocRef.current = null;
         setHasMore(false);
@@ -141,7 +142,7 @@ export const VideoFeedScreen = () => {
 
   // Fetch next page for infinite scroll
   const fetchNextPage = async () => {
-    if (isLoadingMore || !hasMore || !lastDocRef.current) return;
+    if (isLoadingMore || !hasMore || !lastDocRef.current || searchQuery.trim() !== '') return;
 
     setIsLoadingMore(true);
     try {
@@ -165,13 +166,6 @@ export const VideoFeedScreen = () => {
       const snap = await getDocs(q);
       let newVideos: any[] = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      if (searchQuery.trim() !== '') {
-        newVideos = newVideos.filter(video => 
-          video.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-          video.description.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      }
-
       setVideos(prev => [...prev, ...newVideos]);
 
       if (snap.docs.length > 0) {
@@ -193,7 +187,7 @@ export const VideoFeedScreen = () => {
     setIsRefreshing(false);
   };
 
-  // Trigger fetch when category or search changes
+  // Trigger fetch when category changes
   useEffect(() => {
     fetchInitialData(activeCategory, searchQuery);
   }, [activeCategory]);
@@ -211,7 +205,7 @@ export const VideoFeedScreen = () => {
     return (
       <View style={styles.carouselContainer}>
         <View style={styles.sectionHeader}>
-          <Trophy color="#FFBF00" size={18} />
+          <Trophy color="#E50914" size={18} />
           <Text style={styles.sectionTitle}>FEATURED MATCHES</Text>
         </View>
         <ScrollView 
@@ -242,7 +236,7 @@ export const VideoFeedScreen = () => {
         </ScrollView>
         <View style={styles.divider} />
         <View style={styles.sectionHeader}>
-          <Calendar color="#FFBF00" size={18} />
+          <Calendar color="#E50914" size={18} />
           <Text style={styles.sectionTitle}>LATEST UPLOADS</Text>
         </View>
       </View>
@@ -253,7 +247,9 @@ export const VideoFeedScreen = () => {
     <View style={styles.container}>
       {/* Title Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>RAWSPORTS LIVE</Text>
+        <Text style={styles.headerTitle}>
+          RAWSPORTS <Text style={{ color: '#E50914' }}>LIVE</Text>
+        </Text>
         <View style={styles.badge}>
           <Text style={styles.badgeText}>WWE</Text>
         </View>
@@ -268,7 +264,10 @@ export const VideoFeedScreen = () => {
             placeholderTextColor="#666"
             style={styles.searchInput}
             value={searchQuery}
-            onChangeText={setSearchQuery}
+            onChangeText={(text) => {
+              setSearchQuery(text);
+              fetchInitialData(activeCategory, text);
+            }}
             onSubmitEditing={() => fetchInitialData(activeCategory, searchQuery)}
             returnKeyType="search"
           />
@@ -307,14 +306,14 @@ export const VideoFeedScreen = () => {
             <RefreshControl 
               refreshing={isRefreshing} 
               onRefresh={handleRefresh}
-              tintColor="#FFBF00"
+              tintColor="#E50914"
             />
           }
           onEndReached={fetchNextPage}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
             isLoadingMore ? (
-              <ActivityIndicator color="#FFBF00" style={styles.loader} />
+              <ActivityIndicator color="#E50914" style={styles.loader} />
             ) : null
           }
           ListEmptyComponent={
@@ -331,6 +330,7 @@ export const VideoFeedScreen = () => {
         animationType="slide"
         presentationStyle="fullScreen"
         onRequestClose={() => setSelectedVideo(null)}
+        statusBarTranslucent={true}
       >
         <View style={styles.modalContainer}>
           {selectedVideo && (
@@ -393,9 +393,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingTop: Platform.OS === 'ios' ? 12 : 36,
     paddingBottom: 12,
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#050505',
+    borderBottomWidth: 1,
+    borderBottomColor: '#151515',
   },
   headerTitle: {
     color: '#fff',
@@ -405,36 +407,37 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   badge: {
-    backgroundColor: '#fff',
+    backgroundColor: '#E50914',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
     marginLeft: 10,
   },
   badgeText: {
-    color: '#FFBF00',
+    color: '#fff',
     fontSize: 10,
     fontWeight: 'bold',
   },
   searchWrapper: {
     paddingHorizontal: 20,
-    marginBottom: 10,
+    marginVertical: 12,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#151515',
-    borderRadius: 12,
+    backgroundColor: '#111111',
+    borderRadius: 14,
     paddingHorizontal: 15,
     height: 48,
     borderWidth: 1,
-    borderColor: '#252525',
+    borderColor: '#222222',
   },
   searchInput: {
     flex: 1,
     color: '#fff',
     marginLeft: 10,
     fontSize: 14,
+    fontWeight: 'bold',
   },
   listContainer: {
     paddingHorizontal: 20,
@@ -484,7 +487,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#E50914',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -525,17 +528,17 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    top: 40,
+    top: Platform.OS === 'ios' ? 44 : 24,
     right: 20,
     zIndex: 9999,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#E50914',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
     gap: 6,
-    shadowColor: '#FFBF00',
+    shadowColor: '#E50914',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -549,7 +552,7 @@ const styles = StyleSheet.create({
   },
   playerWrapper: {
     flex: 1,
-    marginTop: 100,
+    marginTop: Platform.OS === 'ios' ? 108 : 88,
   },
   modalInfo: {
     flex: 1,
@@ -568,7 +571,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   channelLabel: {
-    color: '#FFBF00',
+    color: '#E50914',
     fontSize: 12,
     fontWeight: 'bold',
   },
@@ -584,22 +587,5 @@ const styles = StyleSheet.create({
     color: '#ccc',
     fontSize: 14,
     lineHeight: 22,
-  },
-  ytDeepLinkButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFBF00',
-    paddingVertical: 12,
-    borderRadius: 12,
-    gap: 8,
-    marginBottom: 20,
-    marginTop: 5,
-  },
-  ytDeepLinkButtonText: {
-    color: '#ffffff',
-    fontSize: 11,
-    fontWeight: 'bold',
-    letterSpacing: 1,
   }
 });

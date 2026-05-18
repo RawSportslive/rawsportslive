@@ -1,18 +1,39 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { auth, db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { uploadToCloudinary } from '@/app/actions/cloudinary';
 import { motion, AnimatePresence } from 'motion/react';
-import { LayoutDashboard, Newspaper, Play, Send, Users, Plus, Trash2, Edit, Video, Star, Loader2, ArrowLeft, Home, LogOut, User as UserIcon, Menu, X, Youtube, Trophy } from 'lucide-react';
+import { 
+  LayoutDashboard, 
+  Newspaper, 
+  Play, 
+  Send, 
+  Users, 
+  Plus, 
+  Trash2, 
+  Edit, 
+  Video, 
+  Star, 
+  Loader2, 
+  ArrowLeft, 
+  Home, 
+  LogOut, 
+  User as UserIcon, 
+  Menu, 
+  X, 
+  Youtube, 
+  Trophy, 
+  Shield 
+} from 'lucide-react';
 import { redirect } from 'next/navigation';
 
 export default function AdminPage() {
   const { user, isAdmin, loading } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'news' | 'videos' | 'wrestlers' | 'youtube' | 'sports'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'news' | 'videos' | 'wrestlers' | 'youtube' | 'sports' | 'legal'>('overview');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -127,6 +148,7 @@ export default function AdminPage() {
       setTimeout(() => setStatus('idle'), 3000);
     }
   };
+
   const handleSyncYouTube = async () => {
     setStatus('loading');
     try {
@@ -144,14 +166,13 @@ export default function AdminPage() {
     }
   };
 
-
   return (
-    <div className="bg-brand-black flex flex-col md:flex-row text-white relative">
+    <div className="bg-brand-black flex flex-col md:flex-row text-white relative min-h-screen">
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 border-b border-white/5 bg-brand-black z-30">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-brand-red flex items-center justify-center text-white">
-            <ShieldCheck size={16} />
+            <Shield size={16} />
           </div>
           <span className="font-bold text-sm uppercase tracking-tight">Admin Panel</span>
         </div>
@@ -183,7 +204,7 @@ export default function AdminPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-brand-red flex items-center justify-center shadow-lg shadow-brand-red/20 text-white">
-                <ShieldCheck size={20} />
+                <Shield size={20} />
               </div>
               <h1 className="font-bold text-xl tracking-tight text-white uppercase">Admin</h1>
             </div>
@@ -201,6 +222,7 @@ export default function AdminPage() {
               <AdminNavItem active={activeTab === 'videos'} onClick={() => { setActiveTab('videos'); setIsSidebarOpen(false); }} icon={Video} label="Video Vault" />
               <AdminNavItem active={activeTab === 'youtube'} onClick={() => { setActiveTab('youtube'); setIsSidebarOpen(false); }} icon={Youtube} label="YouTube Sync" />
               <AdminNavItem active={activeTab === 'sports'} onClick={() => { setActiveTab('sports'); setIsSidebarOpen(false); }} icon={Trophy} label="Sports Hub" />
+              <AdminNavItem active={activeTab === 'legal'} onClick={() => { setActiveTab('legal'); setIsSidebarOpen(false); }} icon={Shield} label="Legal Manager" />
             </nav>
           </div>
         </div>
@@ -258,7 +280,6 @@ export default function AdminPage() {
               </div>
             </motion.div>
           )}
-
 
           {activeTab === 'news' && (
             <motion.div 
@@ -519,8 +540,136 @@ export default function AdminPage() {
               </div>
             </motion.div>
           )}
+
+          {activeTab === 'legal' && (
+            <motion.div 
+              key="legal"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="max-w-2xl mx-auto space-y-8"
+            >
+              <LegalManager />
+            </motion.div>
+          )}
         </AnimatePresence>
       </section>
+    </div>
+  );
+}
+
+function LegalManager() {
+  const [selectedDoc, setSelectedDoc] = useState<'privacy' | 'terms' | 'cookies' | 'deletion'>('privacy');
+  const [content, setContent] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const docTitles = {
+    privacy: 'Privacy Policy',
+    terms: 'Terms of Service',
+    cookies: 'Cookies Policy',
+    deletion: 'Data Deletion Instructions',
+  };
+
+  useEffect(() => {
+    const fetchDoc = async () => {
+      setLoading(true);
+      try {
+        const { doc, getDoc } = await import('firebase/firestore');
+        const snap = await getDoc(doc(db, 'legal', selectedDoc));
+        if (snap.exists()) {
+          setContent(snap.data().content || '');
+        } else {
+          setContent('');
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDoc();
+  }, [selectedDoc]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
+      await setDoc(doc(db, 'legal', selectedDoc), {
+        title: docTitles[selectedDoc],
+        content,
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+      alert(`${docTitles[selectedDoc]} updated successfully!`);
+    } catch (err: any) {
+      alert(`Error saving document: ${err.message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="bg-white/5 border border-white/5 rounded-3xl p-8 space-y-8">
+      <div className="flex items-center gap-4 border-l-4 border-brand-red pl-4">
+        <Shield className="text-brand-red" size={32} />
+        <div>
+          <h3 className="text-xl font-bold uppercase">Legal & Compliance Manager</h3>
+          <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-1">
+            Edit the Privacy Policy, Terms of Service, Cookies, and Data Deletions dynamically.
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 block">Select Legal Document</label>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {Object.entries(docTitles).map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => setSelectedDoc(key as any)}
+              className={`py-3 px-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all border ${
+                selectedDoc === key 
+                  ? 'bg-[#FFBF00] border-[#FFBF00] text-black shadow-lg shadow-[#FFBF00]/10' 
+                  : 'bg-white/5 border-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              {label.split(' ')[0]}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="animate-spin text-[#FFBF00]" size={32} />
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                {docTitles[selectedDoc]} Text
+              </label>
+              <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-500">Live Editor</span>
+            </div>
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              rows={15}
+              className="w-full bg-white/5 border border-white/5 rounded-2xl py-4 px-6 text-sm font-semibold focus:outline-none focus:border-[#FFBF00] transition-all font-mono leading-relaxed text-white"
+              placeholder={`Write the official ${docTitles[selectedDoc]} clauses here...`}
+            />
+          </div>
+
+          <button
+            onClick={handleSave}
+            disabled={saving || !content.trim()}
+            className="w-full bg-[#FFBF00] hover:bg-amber-500 text-black py-5 rounded-2xl font-bold uppercase text-xs tracking-widest transition-all shadow-xl shadow-[#FFBF00]/10 flex items-center justify-center gap-2"
+          >
+            {saving ? <Loader2 className="animate-spin" /> : 'Update Legal Document'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
