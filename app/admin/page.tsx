@@ -7,12 +7,12 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { uploadToCloudinary } from '@/app/actions/cloudinary';
 import { motion, AnimatePresence } from 'motion/react';
-import { LayoutDashboard, Newspaper, Play, Send, Users, Plus, Trash2, Edit, Video, Star, Loader2, ArrowLeft, Home, LogOut, User as UserIcon, Menu, X, Youtube } from 'lucide-react';
+import { LayoutDashboard, Newspaper, Play, Send, Users, Plus, Trash2, Edit, Video, Star, Loader2, ArrowLeft, Home, LogOut, User as UserIcon, Menu, X, Youtube, Trophy } from 'lucide-react';
 import { redirect } from 'next/navigation';
 
 export default function AdminPage() {
   const { user, isAdmin, loading } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'news' | 'videos' | 'wrestlers' | 'youtube'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'news' | 'videos' | 'wrestlers' | 'youtube' | 'sports'>('overview');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -200,6 +200,7 @@ export default function AdminPage() {
               <AdminNavItem active={activeTab === 'wrestlers'} onClick={() => { setActiveTab('wrestlers'); setIsSidebarOpen(false); }} icon={Users} label="Roster Manager" />
               <AdminNavItem active={activeTab === 'videos'} onClick={() => { setActiveTab('videos'); setIsSidebarOpen(false); }} icon={Video} label="Video Vault" />
               <AdminNavItem active={activeTab === 'youtube'} onClick={() => { setActiveTab('youtube'); setIsSidebarOpen(false); }} icon={Youtube} label="YouTube Sync" />
+              <AdminNavItem active={activeTab === 'sports'} onClick={() => { setActiveTab('sports'); setIsSidebarOpen(false); }} icon={Trophy} label="Sports Hub" />
             </nav>
           </div>
         </div>
@@ -433,6 +434,91 @@ export default function AdminPage() {
               </div>
             </motion.div>
           )}
+
+          {activeTab === 'sports' && (
+            <motion.div 
+              key="sports"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-8"
+            >
+              <header>
+                <h2 className="text-3xl font-bold uppercase tracking-tight text-white">Sports Control Center</h2>
+                <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-2">Manage live feeds, toggle API endpoints, and dispatch alerts.</p>
+              </header>
+
+              {/* Grid 1: Analytics & API toggles */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                 {/* Live Analytics */}
+                 <div className="lg:col-span-2 bg-white/5 border border-white/5 rounded-3xl p-8 space-y-6">
+                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Global Sports Analytics</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                       <div className="bg-black/20 border border-white/5 p-6 rounded-2xl space-y-1">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Live Visitors</p>
+                          <p className="text-2xl font-black text-brand-red">1,482</p>
+                       </div>
+                       <div className="bg-black/20 border border-white/5 p-6 rounded-2xl space-y-1">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Saved API Calls</p>
+                          <p className="text-2xl font-black text-green-500">98,420</p>
+                          <p className="text-[8px] font-bold text-gray-500 uppercase">Next.js Gateway Cache</p>
+                       </div>
+                       <div className="bg-black/20 border border-white/5 p-6 rounded-2xl space-y-1">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Starred Matchups</p>
+                          <p className="text-2xl font-black text-yellow-500">8,410</p>
+                       </div>
+                    </div>
+                 </div>
+
+                 {/* API Toggles */}
+                 <div className="bg-white/5 border border-white/5 rounded-3xl p-8 space-y-6">
+                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Sports API Gateways</h3>
+                    <div className="space-y-4">
+                       <ApiToggleRow label="API-Football Integration" active />
+                       <ApiToggleRow label="CricAPI Cricket Gateway" active />
+                       <ApiToggleRow label="balldontlie NBA Gateway" active />
+                       <ApiToggleRow label="TheSportsDB MMA/Tennis" active />
+                       <ApiToggleRow label="Ergast F1 Calendar Feed" active />
+                    </div>
+                 </div>
+              </div>
+
+              {/* Grid 2: Banners & Alerts */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                 {/* Banners */}
+                 <div className="bg-white/5 border border-white/5 rounded-3xl p-8 space-y-6">
+                    <h3 className="text-xl font-bold uppercase border-l-4 border-brand-red pl-4">Live Banners Customizer</h3>
+                    <form className="space-y-4">
+                       <div className="space-y-2">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Banner Headline</label>
+                          <input className="w-full bg-white/5 border border-white/5 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:border-brand-red transition-all" defaultValue="UFC 312: Makhachev vs Tsarukyan Live this Saturday!" />
+                       </div>
+                       <div className="space-y-2">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-gray-500">CTA Link</label>
+                          <input className="w-full bg-white/5 border border-white/5 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:border-brand-red transition-all" defaultValue="/arena" />
+                       </div>
+                       <button type="button" className="w-full bg-brand-red hover:bg-red-700 py-4 rounded-2xl font-bold uppercase text-[10px] tracking-widest transition-all" onClick={() => alert('Banners saved and broadcasted globally!')}>Save & Publish Banner</button>
+                    </form>
+                 </div>
+
+                 {/* Push Notifications */}
+                 <div className="bg-white/5 border border-white/5 rounded-3xl p-8 space-y-6">
+                    <h3 className="text-xl font-bold uppercase border-l-4 border-brand-red pl-4">Send Push Notification</h3>
+                    <form className="space-y-4">
+                       <div className="space-y-2">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Alert Title</label>
+                          <input id="push-title" className="w-full bg-white/5 border border-white/5 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:border-brand-red transition-all" defaultValue="GOAL! Arsenal scores!" />
+                       </div>
+                       <div className="space-y-2">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Alert Message Body</label>
+                          <textarea id="push-body" rows={2} className="w-full bg-white/5 border border-white/5 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:border-brand-red transition-all resize-none" defaultValue="Bukayo Saka strikes in the 74th minute to put Arsenal in front! Watch live highlights now." />
+                       </div>
+                       <button type="button" className="w-full bg-brand-red hover:bg-red-700 py-4 rounded-2xl font-bold uppercase text-[10px] tracking-widest transition-all" onClick={() => alert('Push notifications dispatched to all Android & iOS users!')}>Dispatch Alert</button>
+                    </form>
+                 </div>
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
       </section>
     </div>
@@ -468,6 +554,22 @@ function StatusRow({ label, active }: { label: string, active: boolean }) {
       <div className="flex items-center justify-between py-1">
          <span className="text-[10px] font-bold uppercase text-gray-400">{label}</span>
          <div className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-green-500' : 'bg-gray-700'}`} />
+      </div>
+   );
+}
+
+function ApiToggleRow({ label, active }: { label: string, active: boolean }) {
+   const [isOn, setIsOn] = useState(active);
+   return (
+      <div className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+         <span className="text-[10px] font-bold uppercase text-gray-400">{label}</span>
+         <button 
+           type="button" 
+           onClick={() => setIsOn(!isOn)}
+           className={`w-10 h-6 flex items-center rounded-full p-1 transition-all ${isOn ? 'bg-green-500 justify-end' : 'bg-gray-700 justify-start'}`}
+         >
+           <motion.div layout className="w-4 h-4 bg-white rounded-full shadow-md" />
+         </button>
       </div>
    );
 }
