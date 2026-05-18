@@ -21,7 +21,7 @@ function decodeHtml(str: string): string {
     .replace(/&apos;/g, "'");
 }
 
-const categories = ["All", "RAW", "SmackDown", "Football", "Cricket", "Basketball", "UFC", "F1", "Tennis", "Esports"];
+const categories = ["All", "RAW", "SmackDown", "Football", "Cricket", "Basketball", "UFC", "F1", "Tennis", "Esports", "Wrestling"];
 
 interface Video {
   id: string;
@@ -34,98 +34,6 @@ interface Video {
   createdAt?: any;
   publishedAt?: string;
 }
-
-// Premium official recent sports highlight clips from YouTube
-const SPORTS_VIDEOS: Video[] = [
-  {
-    id: 'sport-fb-1',
-    ytId: 'N_EapR_k70M',
-    title: 'REAL MADRID vs BARCELONA - UEFA Champions League Match Highlights',
-    category: 'Football',
-    categories: ['Football', 'Highlights'],
-    thumbnail: 'https://img.youtube.com/vi/N_EapR_k70M/maxresdefault.jpg'
-  },
-  {
-    id: 'sport-fb-2',
-    ytId: 'h-aP7y3bXG8',
-    title: 'CHELSEA vs ARSENAL - Premier League Highlights',
-    category: 'Football',
-    categories: ['Football', 'Highlights'],
-    thumbnail: 'https://img.youtube.com/vi/h-aP7y3bXG8/maxresdefault.jpg'
-  },
-  {
-    id: 'sport-cr-1',
-    ytId: 'aNq6jSg9X1M',
-    title: 'INDIA vs PAKISTAN - T20 World Cup Thrilling Highlights',
-    category: 'Cricket',
-    categories: ['Cricket', 'Highlights'],
-    thumbnail: 'https://img.youtube.com/vi/aNq6jSg9X1M/maxresdefault.jpg'
-  },
-  {
-    id: 'sport-cr-2',
-    ytId: 'V3_K9m5FjYo',
-    title: 'RCB vs MUMBAI INDIANS - IPL Match Highlights',
-    category: 'Cricket',
-    categories: ['Cricket', 'Highlights'],
-    thumbnail: 'https://img.youtube.com/vi/V3_K9m5FjYo/maxresdefault.jpg'
-  },
-  {
-    id: 'sport-bk-1',
-    ytId: 'Zk_D5U-lH10',
-    title: 'LA LAKERS vs GOLDEN STATE WARRIORS - NBA Western Semifinals Highlights',
-    category: 'Basketball',
-    categories: ['Basketball', 'Highlights'],
-    thumbnail: 'https://img.youtube.com/vi/Zk_D5U-lH10/maxresdefault.jpg'
-  },
-  {
-    id: 'sport-bk-2',
-    ytId: 'uWmdG2rNqHw',
-    title: 'BOSTON CELTICS vs MIAMI HEAT - NBA Conference Finals Highlights',
-    category: 'Basketball',
-    categories: ['Basketball', 'Highlights'],
-    thumbnail: 'https://img.youtube.com/vi/uWmdG2rNqHw/maxresdefault.jpg'
-  },
-  {
-    id: 'sport-uf-1',
-    ytId: 'r9n9K13r_0o',
-    title: 'ISLAM MAKHACHEV vs DUSTIN POIRIER - UFC Title Fight Highlights',
-    category: 'UFC',
-    categories: ['UFC', 'Highlights'],
-    thumbnail: 'https://img.youtube.com/vi/r9n9K13r_0o/maxresdefault.jpg'
-  },
-  {
-    id: 'sport-uf-2',
-    ytId: 'v_32e8_pXoM',
-    title: 'JON JONES vs STIPE MIOCIC - UFC Heavyweight Title Highlights',
-    category: 'UFC',
-    categories: ['UFC', 'Highlights'],
-    thumbnail: 'https://img.youtube.com/vi/v_32e8_pXoM/maxresdefault.jpg'
-  },
-  {
-    id: 'sport-f1-1',
-    ytId: '0-wS6XnF_v0',
-    title: 'MONACO GRAND PRIX - Street Race Highlights',
-    category: 'F1',
-    categories: ['F1', 'Highlights'],
-    thumbnail: 'https://img.youtube.com/vi/0-wS6XnF_v0/maxresdefault.jpg'
-  },
-  {
-    id: 'sport-tn-1',
-    ytId: '9z_8UvK6S7w',
-    title: 'CARLOS ALCARAZ vs NOVAK DJOKOVIC - Wimbledon Final Replay Highlights',
-    category: 'Tennis',
-    categories: ['Tennis', 'Highlights'],
-    thumbnail: 'https://img.youtube.com/vi/9z_8UvK6S7w/maxresdefault.jpg'
-  },
-  {
-    id: 'sport-es-1',
-    ytId: 'hX7zW8r9KjY',
-    title: 'VALORANT CHAMPIONS GRAND FINALS - Map 5 Highlights',
-    category: 'Esports',
-    categories: ['Esports', 'Highlights'],
-    thumbnail: 'https://img.youtube.com/vi/hX7zW8r9KjY/maxresdefault.jpg'
-  }
-];
 
 export default function VideosPage() {
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
@@ -168,14 +76,14 @@ export default function VideosPage() {
           ytId: data.videoId,
           title: decodeHtml(data.title),
           thumbnail: data.thumbnail,
-          category: data.categories?.[1] || data.categories?.[0] || 'Latest',
+          category: data.categories?.[0] || 'Latest',
           categories: data.categories,
           publishedAt: data.publishedAt,
         } as Video;
       });
 
-      // Merge and display manual, YouTube WWE, and all additional multi-sport highlights
-      setVideos([...manualVideos, ...ytVideos, ...SPORTS_VIDEOS]);
+      // Show real, live fetched multi-sport and WWE videos directly from your Firestore DB!
+      setVideos([...manualVideos, ...ytVideos]);
     } catch (error) {
       console.error("Error fetching videos:", error);
     } finally {
@@ -230,7 +138,7 @@ export default function VideosPage() {
               RAWSPORTS <span className="text-brand-red">LIVE</span>
             </h1>
             <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">
-              Highlights & Video Arena
+              Official Multi-Sports Video Arena
             </p>
           </div>
         </div>

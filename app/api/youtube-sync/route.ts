@@ -3,15 +3,51 @@ import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
-const CHANNEL_ID = 'UCJ5v_MCY6GNUBTO8-D3XoAg';
 const SYNC_TOKEN = "ringzone-cron-secret-2026";
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 30; // Allow up to 30s on Vercel Hobby
+export const maxDuration = 60;
+
+const OFFICIAL_CHANNELS = [
+  // WRESTLING
+  { channelId: 'UCJ5v_MCY6GNUBTO8-D3XoAg', name: 'WWE', category: 'Wrestling' },
+  { channelId: 'UCIr4vkCsn0tdTW2xZ1jRG1g', name: 'AEW', category: 'Wrestling' },
+  { channelId: 'UCaXkIU1QidjPwiAYu6GcHjg', name: 'TNA Wrestling', category: 'Wrestling' },
+
+  // BASKETBALL
+  { channelId: 'UCWJ2lWNubArHWmf3FIHbfcQ', name: 'NBA', category: 'Basketball' },
+  { channelId: 'UCiWLfSweyRNmLpgEHekhoAg', name: 'ESPN NBA', category: 'Basketball' },
+
+  // FOOTBALL / SOCCER
+  { channelId: 'UCpcTrCXblq78GZrTUTLWeBw', name: 'UEFA', category: 'Football' },
+  { channelId: 'UCG5qGWdu8nIRZqJ_GgDwQ-w', name: 'Premier League', category: 'Football' },
+  { channelId: 'UCbt6MySP7zdv1jO1qXwQx-g', name: 'LaLiga', category: 'Football' },
+  { channelId: 'UCVGOWXDMhXmkjR0D-X0K1NQ', name: 'ESPN FC', category: 'Football' },
+
+  // CRICKET
+  { channelId: 'UCt2JXOLNxqry7B_4rRZME3Q', name: 'ICC', category: 'Cricket' },
+  { channelId: 'UCtw7q4OD7U66R6aJkH93M_g', name: 'Sony Sports Network', category: 'Cricket' },
+
+  // UFC / MMA
+  { channelId: 'UCvgfXK4nTYKudb0rFR6noLA', name: 'UFC', category: 'UFC' },
+  { channelId: 'UCn8zNIfYAQNdrFRrr8oibKw', name: 'ESPN MMA', category: 'UFC' },
+
+  // FORMULA 1
+  { channelId: 'UCB_qr75-ydFVKSF9Dmo6izg', name: 'Formula 1', category: 'F1' },
+
+  // TENNIS
+  { channelId: 'UCzAYW60ZZ-rB8f-VqIsuPWg', name: 'ATP Tour', category: 'Tennis' },
+  { channelId: 'UCEgdi0XIXXZ-qJOFPf4JSKw', name: 'Wimbledon', category: 'Tennis' },
+  { channelId: 'UCiBr0bK06imaMbLc8sAEz0A', name: 'US Open Tennis', category: 'Tennis' },
+
+  // ESPORTS
+  { channelId: 'UCey_c7U86mJGz1VJWH5CYPA', name: 'ESL', category: 'Esports' },
+  { channelId: 'UCzVgCrOcBAWYEHTtVOMPAtw', name: 'Valorant Champions Tour', category: 'Esports' },
+  { channelId: 'UCVG8DaVIR1XQJrJWSf5Lzcg', name: 'PUBG Mobile Esports', category: 'Esports' },
+];
 
 export async function GET(request: Request) {
   try {
-    // Auth check
     const { searchParams } = new URL(request.url);
     const authHeader = request.headers.get('authorization');
     if (authHeader !== `Bearer ${SYNC_TOKEN}` && searchParams.get('token') !== SYNC_TOKEN) {
@@ -22,78 +58,77 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'YOUTUBE_API_KEY not configured' }, { status: 500 });
     }
 
-    // 1. Fetch latest 15 videos from YouTube
-    const ytUrl = `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_API_KEY}&channelId=${CHANNEL_ID}&part=snippet,id&order=date&maxResults=15&type=video`;
-    const ytRes = await fetch(ytUrl, { cache: 'no-store' });
-    const ytData = await ytRes.json();
-
-    if (!ytRes.ok) {
-      return NextResponse.json({ error: ytData.error?.message || 'YouTube API error' }, { status: 500 });
-    }
-
-    const videos = (ytData.items || []).filter((item: any) => item.id?.videoId);
-    if (videos.length === 0) {
-      return NextResponse.json({ success: true, message: 'No videos found from YouTube.', syncedVideos: [] });
-    }
-
-    const videoIds = videos.map((v: any) => v.id.videoId);
-
-    // 2. Bulk check which video IDs already exist using Admin SDK (fast, no timeout)
-    const existingSnap = await adminDb
-      .collection('youtube_videos')
-      .where('videoId', 'in', videoIds)
-      .select('videoId')
-      .get();
-
-    const existingIds = new Set(existingSnap.docs.map(d => d.data().videoId));
-
-    // 3. Write new videos using a batch (fast atomic write)
+    const newlySynced: string[] = [];
     const batch = adminDb.batch();
-    const syncedVideos: string[] = [];
 
-    for (const video of videos) {
-      const videoId = video.id.videoId;
-      if (existingIds.has(videoId)) continue;
+    // Query all channels concurrently in parallel to avoid Vercel gateway timeout
+    await Promise.all(
+      OFFICIAL_CHANNELS.map(async (channel) => {
+        try {
+          const uploadsPlaylistId = 'UU' + channel.channelId.substring(2);
+          const ytUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=3&key=${YOUTUBE_API_KEY}`;
+          
+          const ytRes = await fetch(ytUrl, { cache: 'no-store' });
+          if (!ytRes.ok) return;
 
-      const snippet = video.snippet;
-      const titleLower = snippet.title.toLowerCase();
-      const categories = ['Latest'];
+          const ytData = await ytRes.json();
+          const items = ytData.items || [];
 
-      if (titleLower.includes('raw')) categories.push('RAW');
-      if (titleLower.includes('smackdown') || titleLower.includes('smack down')) categories.push('SmackDown');
-      if (titleLower.includes('wrestlemania')) categories.push('WrestleMania');
-      if (titleLower.includes('highlight') || titleLower.includes('top 10') || titleLower.includes('moments') || titleLower.includes('full match')) categories.push('Highlights');
-      if (categories.length === 1) categories.push('Highlights');
+          for (const item of items) {
+            const snippet = item.snippet;
+            const videoId = snippet.resourceId?.videoId;
+            if (!videoId) continue;
 
-      const ref = adminDb.collection('youtube_videos').doc();
-      batch.set(ref, {
-        videoId,
-        title: snippet.title,
-        description: snippet.description || '',
-        thumbnail: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url || '',
-        publishedAt: snippet.publishedAt,
-        channelTitle: snippet.channelTitle,
-        categories,
-        syncedAt: FieldValue.serverTimestamp(),
-      });
+            // Check existence
+            const docSnap = await adminDb
+              .collection('youtube_videos')
+              .where('videoId', '==', videoId)
+              .limit(1)
+              .get();
 
-      syncedVideos.push(videoId);
-    }
+            if (!docSnap.empty) continue;
 
-    if (syncedVideos.length > 0) {
+            const title = snippet.title || 'Untitled Highlight';
+            // Fallback to official YouTube high-quality thumbnail if not present
+            const thumbnail = snippet.thumbnails?.high?.url || snippet.thumbnails?.medium?.url || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+            const description = snippet.description || '';
+            const publishedAt = snippet.publishedAt || new Date().toISOString();
+
+            const ref = adminDb.collection('youtube_videos').doc();
+            batch.set(ref, {
+              videoId,
+              title,
+              description,
+              thumbnail,
+              publishedAt,
+              channelTitle: channel.name,
+              categories: [channel.category, 'Highlights'],
+              syncedAt: FieldValue.serverTimestamp(),
+            });
+
+            newlySynced.push(`${channel.category}: ${title}`);
+          }
+        } catch (err) {
+          console.error(`Error processing channel ${channel.name}:`, err);
+        }
+      })
+    );
+
+    if (newlySynced.length > 0) {
       await batch.commit();
     }
 
     return NextResponse.json({
       success: true,
-      message: syncedVideos.length > 0
-        ? `✅ Synced ${syncedVideos.length} new WWE video(s)!`
-        : '✅ Database is already up to date!',
-      syncedVideos,
+      message: newlySynced.length > 0
+        ? `✅ Synced ${newlySynced.length} new sports video(s) concurrently!`
+        : '✅ Database is already fully updated!',
+      syncedCount: newlySynced.length,
+      syncedVideos: newlySynced,
     });
 
   } catch (error: any) {
-    console.error('YouTube Sync Error:', error);
+    console.error('Parallel Multi-Sports Sync Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
