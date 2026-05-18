@@ -22,6 +22,7 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isEnded, setIsEnded] = useState(false);
+  const [isPseudoLandscape, setIsPseudoLandscape] = useState(false);
   const playerRef = useRef<any>(null);
   
   const isYoutube = url.includes('youtube.com') || url.includes('youtu.be');
@@ -174,39 +175,64 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
       const container = containerRef.current as any;
       const isFs = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement);
 
-      if (isFs) {
+      if (isFs || isPseudoLandscape) {
         const exit = doc.exitFullscreen || doc.webkitExitFullscreen || doc.mozCancelFullScreen || doc.msExitFullscreen;
         if (exit) {
-          await exit.call(doc);
+          try { await exit.call(doc); } catch (e) {}
         }
+        setIsPseudoLandscape(false);
         if (screen.orientation && screen.orientation.unlock) {
           try { screen.orientation.unlock(); } catch (e) {}
         }
       } else {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
         const req = container.requestFullscreen || container.webkitRequestFullscreen || container.mozRequestFullScreen || container.msRequestFullscreen;
         if (req) {
-          await req.call(container);
-          // Wait for the browser to transition to fullscreen before locking orientation
-          setTimeout(async () => {
-            const orientation = screen.orientation as any;
-            if (orientation && orientation.lock) {
+          try { await req.call(container); } catch (e) {}
+        }
+
+        // Apply pseudo-landscape if mobile to rotate layout 90deg (bulletproof against system portrait locks)
+        if (isMobile) {
+          setIsPseudoLandscape(true);
+        }
+
+        // Wait for the browser to transition to fullscreen before locking orientation
+        setTimeout(async () => {
+          const orientation = screen.orientation as any;
+          if (orientation && orientation.lock) {
+            try {
+              await orientation.lock('landscape');
+            } catch (e) {
               try {
-                await orientation.lock('landscape');
-              } catch (e) {
-                try {
-                  await orientation.lock('landscape-primary');
-                } catch (err2) {
-                  console.log("Landscape lock failed:", err2);
-                }
+                await orientation.lock('landscape-primary');
+              } catch (err2) {
+                console.log("Landscape lock failed:", err2);
               }
             }
-          }, 250);
-        }
+          }
+        }, 250);
       }
     } catch (err) {
       console.error("Fullscreen error:", err);
     }
   };
+
+  useEffect(() => {
+    const handleFsChange = () => {
+      const doc = document as any;
+      const isFs = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement);
+      if (!isFs) {
+        setIsPseudoLandscape(false);
+      }
+    };
+    document.addEventListener('fullscreenchange', handleFsChange);
+    document.addEventListener('webkitfullscreenchange', handleFsChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFsChange);
+      document.removeEventListener('webkitfullscreenchange', handleFsChange);
+    };
+  }, []);
 
   const handleShare = async () => {
     try {
@@ -277,6 +303,18 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
       className={`relative aspect-video bg-black rounded-3xl overflow-hidden border border-white/5 group transition-all duration-300 ${showControls ? 'cursor-default' : 'cursor-none'}`}
       onMouseMove={resetTimer}
       onClick={resetTimer}
+      style={isPseudoLandscape ? {
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        width: '100vh',
+        height: '100vw',
+        transform: 'translate(-50%, -50%) rotate(90deg)',
+        zIndex: 99999,
+        borderRadius: 0,
+        maxWidth: 'none',
+        maxHeight: 'none',
+      } : {}}
     >
       {isYoutube ? (
         <div className={`absolute inset-0 scale-[1.12] transition-opacity duration-700 ${hasStarted ? 'opacity-100' : 'opacity-0'}`}>

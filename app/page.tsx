@@ -47,7 +47,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-brand-black">
       {/* Top Bar */}
-      <header className="sticky top-0 z-50 bg-brand-red shadow-lg shadow-brand-red/35 border-b border-red-700/30">
+      <header className="sticky top-0 z-50 bg-black shadow-lg border-b border-white/5">
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-4">
             <Menu className="text-white cursor-pointer hover:text-red-100" />
@@ -112,7 +112,7 @@ export default function Home() {
           <SectionHeader title="Video Highlights" icon={Trophy} />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {videos.map((video) => (
-              <div key={video.id} onClick={() => setActiveVideo(video)} className="relative group cursor-pointer rounded-2xl overflow-hidden bg-white/5 border border-white/10">
+              <div key={video.id} onClick={() => setActiveVideo(video)} className="relative group cursor-pointer rounded-2xl overflow-hidden glass">
                 <div className="relative aspect-video">
                   <Image 
                     src={video.thumbnail} 
@@ -129,10 +129,10 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="p-4">
-                  <h3 className="font-bold text-lg text-white group-hover:text-brand-red transition-colors">
+                  <h3 className="font-bold text-lg text-[#121212] group-hover:text-brand-red transition-colors">
                     {video.title}
                   </h3>
-                  <p className="text-xs text-gray-400 mt-1 uppercase tracking-widest font-semibold">
+                  <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest font-semibold">
                     {video.category} • Watch Now
                   </p>
                 </div>

@@ -130,7 +130,7 @@ export default function VideosPage() {
         <div className="flex items-center gap-3">
           <img src="/logo.png" alt="RawSports Live" className="h-12 w-12 object-contain rounded-xl" />
           <div>
-            <h1 className="text-xl font-bold uppercase tracking-tight text-white leading-none">
+            <h1 className="text-xl font-bold uppercase tracking-tight text-[#121212] leading-none">
               RAWSPORTS <span className="text-brand-red">LIVE</span>
             </h1>
             <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest">
@@ -141,7 +141,7 @@ export default function VideosPage() {
         <button
           onClick={() => fetchAllVideos(true)}
           disabled={refreshing}
-          className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-white hover:bg-white/10 transition-all active:scale-95"
+          className="flex items-center gap-2 bg-black/5 border border-black/5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider text-gray-600 hover:text-black hover:bg-black/10 transition-all active:scale-95"
         >
           <RefreshCw size={14} className={refreshing ? 'animate-spin text-brand-red' : ''} />
           {refreshing ? 'Syncing...' : 'Refresh'}
@@ -149,11 +149,11 @@ export default function VideosPage() {
       </header>
 
       <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-1 bg-white/5 border border-white/10 flex items-center px-4 py-3 rounded-2xl">
+        <div className="flex-1 bg-white border border-black/5 flex items-center px-4 py-3 rounded-2xl shadow-sm">
           <Search size={20} className="text-gray-500" />
           <input 
             placeholder="Search matches, interviews..." 
-            className="bg-transparent border-none focus:ring-0 text-sm font-medium w-full ml-3 placeholder:text-gray-600 text-white"
+            className="bg-transparent border-none focus:ring-0 text-sm font-medium w-full ml-3 placeholder:text-gray-400 text-[#121212]"
           />
         </div>
         <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
@@ -164,7 +164,7 @@ export default function VideosPage() {
               className={`px-6 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-all ${
                 activeCategory === cat 
                   ? 'bg-brand-red text-white shadow-lg shadow-brand-red/20' 
-                  : 'bg-white/5 text-gray-400 border border-white/5 hover:bg-white/10'
+                  : 'bg-white text-gray-600 border border-black/5 hover:bg-black/5 hover:text-black shadow-sm'
               }`}
             >
               {cat}
@@ -202,12 +202,12 @@ export default function VideosPage() {
                 }}
                 className="group cursor-pointer"
               >
-                <div className="relative aspect-video rounded-2xl overflow-hidden bg-white/5 border border-white/10">
+                <div className="relative aspect-video rounded-2xl overflow-hidden glass">
                   <Image 
                     src={video.thumbnail} 
                     alt={video.title} 
                     fill 
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                     referrerPolicy="no-referrer"
                     unoptimized={true}
                   />
@@ -224,7 +224,7 @@ export default function VideosPage() {
                   </div>
                 </div>
                 <div className="mt-4 space-y-1">
-                  <h3 className="text-lg font-bold leading-snug text-white group-hover:text-brand-red transition-colors line-clamp-2">
+                  <h3 className="text-lg font-bold leading-snug text-[#121212] group-hover:text-brand-red transition-colors line-clamp-2">
                     {video.title}
                   </h3>
                   <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">

@@ -2,14 +2,14 @@
 
 @theme {
   --color-brand-red: #ff0000;
-  --color-brand-black: #0a0a0a;
-  --color-brand-gray: #1a1a1a;
+  --color-brand-black: #faf9f6;
+  --color-brand-gray: #f4f1ea;
   --font-display: "Space Grotesk", sans-serif;
 }
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #ffffff;
+  --background: #faf9f6;
+  --foreground: #121212;
 }
 
 
@@ -49,9 +49,10 @@ body {
 }
 
 .glass {
-  background: rgba(26, 26, 26, 0.7);
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
 }
 
 .crimson-gradient {

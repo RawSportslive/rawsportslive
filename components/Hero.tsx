@@ -72,7 +72,7 @@ export default function Hero() {
             style={{ backgroundImage: `url(${HERO_POSTS[current].image})` }}
           />
           {/* Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-brand-black via-brand-black/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
           <div className="absolute inset-0 bg-black/20" />
 
           {/* Content */}
