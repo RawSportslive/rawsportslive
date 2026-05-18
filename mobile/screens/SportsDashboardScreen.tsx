@@ -33,48 +33,7 @@ export const SportsDashboardScreen: React.FC<SportsDashboardScreenProps> = ({ on
   const sportToFetch = activeSport === 'all' ? 'football' : activeSport;
   const { data: matches = [], isLoading, isRefetching, refetch } = useLiveMatches(sportToFetch);
 
-  // Filter or aggregate mock matches when 'all' is selected to make a super premium view
-  const displayMatches = React.useMemo(() => {
-    if (activeSport !== 'all') return matches;
-    
-    // For 'all' tab, we inject additional multi-sports live cards so they get a complete premium sports ecosystem!
-    const extraMatches: LiveMatch[] = [
-      {
-        id: 'cr-live-all-1',
-        sport: 'cricket',
-        league: 'IPL T20 League',
-        status: 'live',
-        timer: 'Overs: 14.2',
-        teamHome: { name: 'Mumbai Indians', logo: 'https://www.thesportsdb.com/images/media/team/badge/mumbai.png', score: '142/3' },
-        teamAway: { name: 'Chennai Super Kings', logo: 'https://www.thesportsdb.com/images/media/team/badge/chennai.png', score: 'Yet to Bat' },
-        venue: 'Wankhede Stadium',
-        stats: [{ label: 'Run Rate', home: '9.91', away: 'N/A' }],
-        events: [{ time: '12.4 Ov', type: 'wicket', player: 'Rohit Sharma', detail: 'c. Dhoni b. Jadeja 72(45)' }]
-      },
-      {
-        id: 'bk-live-all-1',
-        sport: 'basketball',
-        league: 'NBA Regular Season',
-        status: 'live',
-        timer: 'Qtr 4 - 8:12',
-        teamHome: { name: 'LA Lakers', logo: 'https://www.thesportsdb.com/images/media/team/badge/trryqu1421415273.png', score: '102' },
-        teamAway: { name: 'Golden State Warriors', logo: 'https://www.thesportsdb.com/images/media/team/badge/qvruyt1421413812.png', score: '98' },
-        venue: 'Crypto.com Arena'
-      },
-      {
-        id: 'ufc-live-all-1',
-        sport: 'ufc',
-        league: 'UFC 312 PPV Main Card',
-        status: 'live',
-        timer: 'Round 3 - Active',
-        teamHome: { name: 'Islam Makhachev', logo: 'https://www.thesportsdb.com/images/media/player/render/y0w3c21666611394.png', score: 'Active', detail: 'Champion' },
-        teamAway: { name: 'Arman Tsarukyan', logo: 'https://www.thesportsdb.com/images/media/player/render/vxxwyy1520110398.png', score: 'Active', detail: 'Challenger' },
-        venue: 'Madison Square Garden'
-      }
-    ];
-
-    return [...matches, ...extraMatches];
-  }, [matches, activeSport]);
+  const displayMatches = matches;
 
   const handleRefresh = async () => {
     await refetch();
