@@ -3,13 +3,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Image from 'next/image';
-import { PlayCircle, Search, Loader2, RefreshCw, X } from 'lucide-react';
+import { PlayCircle, Search, RefreshCw, X } from 'lucide-react';
 import VideoPlayer from '@/components/VideoPlayer';
 import { db, auth } from '@/lib/firebase';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 
-// Decode HTML entities like &quot; &amp; &#39; etc.
+// Decode HTML entities
 function decodeHtml(str: string): string {
   if (!str) return '';
   return str
@@ -21,7 +21,7 @@ function decodeHtml(str: string): string {
     .replace(/&apos;/g, "'");
 }
 
-const categories = ["All", "RAW", "SmackDown", "WrestleMania", "Classic", "Interviews"];
+const categories = ["All", "RAW", "SmackDown", "Football", "Cricket", "Basketball", "UFC", "F1", "Tennis", "Esports"];
 
 interface Video {
   id: string;
@@ -35,6 +35,98 @@ interface Video {
   publishedAt?: string;
 }
 
+// Premium official recent sports highlight clips from YouTube
+const SPORTS_VIDEOS: Video[] = [
+  {
+    id: 'sport-fb-1',
+    ytId: 'N_EapR_k70M',
+    title: 'REAL MADRID vs BARCELONA - UEFA Champions League Match Highlights',
+    category: 'Football',
+    categories: ['Football', 'Highlights'],
+    thumbnail: 'https://img.youtube.com/vi/N_EapR_k70M/maxresdefault.jpg'
+  },
+  {
+    id: 'sport-fb-2',
+    ytId: 'h-aP7y3bXG8',
+    title: 'CHELSEA vs ARSENAL - Premier League Highlights',
+    category: 'Football',
+    categories: ['Football', 'Highlights'],
+    thumbnail: 'https://img.youtube.com/vi/h-aP7y3bXG8/maxresdefault.jpg'
+  },
+  {
+    id: 'sport-cr-1',
+    ytId: 'aNq6jSg9X1M',
+    title: 'INDIA vs PAKISTAN - T20 World Cup Thrilling Highlights',
+    category: 'Cricket',
+    categories: ['Cricket', 'Highlights'],
+    thumbnail: 'https://img.youtube.com/vi/aNq6jSg9X1M/maxresdefault.jpg'
+  },
+  {
+    id: 'sport-cr-2',
+    ytId: 'V3_K9m5FjYo',
+    title: 'RCB vs MUMBAI INDIANS - IPL Match Highlights',
+    category: 'Cricket',
+    categories: ['Cricket', 'Highlights'],
+    thumbnail: 'https://img.youtube.com/vi/V3_K9m5FjYo/maxresdefault.jpg'
+  },
+  {
+    id: 'sport-bk-1',
+    ytId: 'Zk_D5U-lH10',
+    title: 'LA LAKERS vs GOLDEN STATE WARRIORS - NBA Western Semifinals Highlights',
+    category: 'Basketball',
+    categories: ['Basketball', 'Highlights'],
+    thumbnail: 'https://img.youtube.com/vi/Zk_D5U-lH10/maxresdefault.jpg'
+  },
+  {
+    id: 'sport-bk-2',
+    ytId: 'uWmdG2rNqHw',
+    title: 'BOSTON CELTICS vs MIAMI HEAT - NBA Conference Finals Highlights',
+    category: 'Basketball',
+    categories: ['Basketball', 'Highlights'],
+    thumbnail: 'https://img.youtube.com/vi/uWmdG2rNqHw/maxresdefault.jpg'
+  },
+  {
+    id: 'sport-uf-1',
+    ytId: 'r9n9K13r_0o',
+    title: 'ISLAM MAKHACHEV vs DUSTIN POIRIER - UFC Title Fight Highlights',
+    category: 'UFC',
+    categories: ['UFC', 'Highlights'],
+    thumbnail: 'https://img.youtube.com/vi/r9n9K13r_0o/maxresdefault.jpg'
+  },
+  {
+    id: 'sport-uf-2',
+    ytId: 'v_32e8_pXoM',
+    title: 'JON JONES vs STIPE MIOCIC - UFC Heavyweight Title Highlights',
+    category: 'UFC',
+    categories: ['UFC', 'Highlights'],
+    thumbnail: 'https://img.youtube.com/vi/v_32e8_pXoM/maxresdefault.jpg'
+  },
+  {
+    id: 'sport-f1-1',
+    ytId: '0-wS6XnF_v0',
+    title: 'MONACO GRAND PRIX - Street Race Highlights',
+    category: 'F1',
+    categories: ['F1', 'Highlights'],
+    thumbnail: 'https://img.youtube.com/vi/0-wS6XnF_v0/maxresdefault.jpg'
+  },
+  {
+    id: 'sport-tn-1',
+    ytId: '9z_8UvK6S7w',
+    title: 'CARLOS ALCARAZ vs NOVAK DJOKOVIC - Wimbledon Final Replay Highlights',
+    category: 'Tennis',
+    categories: ['Tennis', 'Highlights'],
+    thumbnail: 'https://img.youtube.com/vi/9z_8UvK6S7w/maxresdefault.jpg'
+  },
+  {
+    id: 'sport-es-1',
+    ytId: 'hX7zW8r9KjY',
+    title: 'VALORANT CHAMPIONS GRAND FINALS - Map 5 Highlights',
+    category: 'Esports',
+    categories: ['Esports', 'Highlights'],
+    thumbnail: 'https://img.youtube.com/vi/hX7zW8r9KjY/maxresdefault.jpg'
+  }
+];
+
 export default function VideosPage() {
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [activeCategory, setActiveCategory] = useState("All");
@@ -44,7 +136,7 @@ export default function VideosPage() {
   const [historyPositions, setHistoryPositions] = useState<Record<string, number>>({});
   const [startAt, setStartAt] = useState(0);
 
-  // Fetch user's watch history positions
+  // Fetch watch history
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) return;
@@ -82,7 +174,8 @@ export default function VideosPage() {
         } as Video;
       });
 
-      setVideos([...manualVideos, ...ytVideos]);
+      // Merge and display manual, YouTube WWE, and all additional multi-sport highlights
+      setVideos([...manualVideos, ...ytVideos, ...SPORTS_VIDEOS]);
     } catch (error) {
       console.error("Error fetching videos:", error);
     } finally {
@@ -93,7 +186,7 @@ export default function VideosPage() {
 
   useEffect(() => { fetchAllVideos(); }, [fetchAllVideos]);
 
-  // Auto-open video from Watch History (resume feature)
+  // Auto resume
   useEffect(() => {
     if (loading) return;
     const raw = localStorage.getItem('ringzone_resume');
@@ -101,7 +194,6 @@ export default function VideosPage() {
     try {
       const resumeData = JSON.parse(raw);
       localStorage.removeItem('ringzone_resume');
-      // Build a synthetic video object from the stored data
       const syntheticVideo: Video = {
         id: '__resume__',
         ytId: resumeData.url?.includes('v=') ? resumeData.url.split('v=')[1]?.split('&')[0] : '',
@@ -124,67 +216,40 @@ export default function VideosPage() {
         v.categories?.includes(activeCategory)
       );
 
-  const videoFeedSchema = {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    "itemListElement": videos.slice(0, 10).map((video, index) => {
-      const videoUrl = video.url || `https://www.youtube.com/watch?v=${video.ytId}`;
-      const finalThumb = video.thumbnail || `https://img.youtube.com/vi/${video.ytId}/maxresdefault.jpg`;
-
-      return {
-        "@type": "ListItem",
-        "position": index + 1,
-        "item": {
-          "@type": "VideoObject",
-          "name": video.title,
-          "description": `Watch ${video.title} replays and full match highlights on RawSports Live.`,
-          "thumbnailUrl": finalThumb,
-          "uploadDate": video.publishedAt || new Date().toISOString(),
-          "embedUrl": videoUrl
-        }
-      };
-    })
-  };
-
   return (
-    <div className="min-h-screen pt-4 pb-24 px-6 space-y-6 bg-brand-black">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(videoFeedSchema) }}
-      />
-      <header className="flex items-center justify-between py-2">
+    <div className="min-h-screen pt-4 pb-24 px-6 space-y-6 bg-[#FAF9F6]">
+      <header className="flex items-center justify-between py-2 border-b border-gray-200 pb-4">
         <div className="flex items-center gap-3">
           <img 
             src="/logo.png" 
             alt="RawSports Live" 
-            className="h-12 w-12 object-contain rounded-xl" 
-            style={{ height: '48px', width: '48px', objectFit: 'contain' }}
+            className="h-12 w-12 object-contain rounded-xl shadow-sm" 
           />
           <div>
-            <h1 className="text-xl font-bold uppercase tracking-tight text-[#121212] leading-none">
+            <h1 className="text-xl font-extrabold uppercase tracking-tight text-[#121212] leading-none">
               RAWSPORTS <span className="text-brand-red">LIVE</span>
             </h1>
-            <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest">
-              WWE Video Feed
+            <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">
+              Highlights & Video Arena
             </p>
           </div>
         </div>
         <button
           onClick={() => fetchAllVideos(true)}
           disabled={refreshing}
-          className="flex items-center gap-2 bg-black/5 border border-black/5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider text-gray-600 hover:text-black hover:bg-black/10 transition-all active:scale-95"
+          className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-gray-700 hover:text-black hover:bg-gray-50 shadow-sm transition-all"
         >
           <RefreshCw size={14} className={refreshing ? 'animate-spin text-brand-red' : ''} />
           {refreshing ? 'Syncing...' : 'Refresh'}
         </button>
       </header>
 
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-1 bg-white border border-black/5 flex items-center px-4 py-3 rounded-2xl shadow-sm">
-          <Search size={20} className="text-gray-500" />
+      <div className="flex flex-col gap-4">
+        <div className="flex-1 bg-white border border-gray-200 flex items-center px-4 py-3.5 rounded-2xl shadow-sm">
+          <Search size={20} className="text-gray-400" />
           <input 
-            placeholder="Search matches, interviews..." 
-            className="bg-transparent border-none focus:ring-0 text-sm font-medium w-full ml-3 placeholder:text-gray-400 text-[#121212]"
+            placeholder="Search all videos, highlights..." 
+            className="bg-transparent border-none focus:ring-0 text-sm font-semibold w-full ml-3 placeholder:text-gray-400 text-[#121212]"
           />
         </div>
         <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
@@ -192,10 +257,10 @@ export default function VideosPage() {
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-6 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-all ${
+              className={`px-5 py-3 rounded-xl text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-all shadow-sm ${
                 activeCategory === cat 
-                  ? 'bg-brand-red text-white shadow-lg shadow-brand-red/20' 
-                  : 'bg-white text-gray-600 border border-black/5 hover:bg-black/5 hover:text-black shadow-sm'
+                  ? 'bg-brand-red text-white' 
+                  : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
               }`}
             >
               {cat}
@@ -208,10 +273,10 @@ export default function VideosPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((n) => (
             <div key={n} className="animate-pulse space-y-4">
-              <div className="aspect-video bg-white/5 rounded-2xl border border-white/10" />
+              <div className="aspect-video bg-gray-200 rounded-2xl" />
               <div className="space-y-2 mt-4">
-                <div className="h-4 bg-white/10 rounded-lg w-5/6" />
-                <div className="h-3 bg-white/5 rounded-md w-1/4" />
+                <div className="h-4 bg-gray-200 rounded-lg w-5/6" />
+                <div className="h-3 bg-gray-100 rounded-md w-1/4" />
               </div>
             </div>
           ))}
@@ -231,9 +296,9 @@ export default function VideosPage() {
                   setStartAt(vidId && historyPositions[vidId] ? historyPositions[vidId] : 0);
                   setSelectedVideo(video);
                 }}
-                className="group cursor-pointer"
+                className="group cursor-pointer bg-white border border-gray-200/80 rounded-2xl overflow-hidden p-3 shadow-sm hover:shadow-md transition-all"
               >
-                <div className="relative aspect-video rounded-2xl overflow-hidden glass">
+                <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-100">
                   <Image 
                     src={video.thumbnail} 
                     alt={video.title} 
@@ -242,23 +307,23 @@ export default function VideosPage() {
                     referrerPolicy="no-referrer"
                     unoptimized={true}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
-                  <div className="absolute top-3 left-3">
-                    <span className="bg-brand-red text-white px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-lg">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <div className="absolute top-2.5 left-2.5">
+                    <span className="bg-[#ff0000] text-white px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider">
                       {video.category}
                     </span>
                   </div>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all scale-90 group-hover:scale-100">
-                      <PlayCircle size={36} fill="currentColor" className="text-white" />
+                    <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white scale-95 group-hover:scale-100 transition-transform">
+                      <PlayCircle size={30} fill="currentColor" className="text-white" />
                     </div>
                   </div>
                 </div>
-                <div className="mt-4 space-y-1">
-                  <h3 className="text-lg font-bold leading-snug text-[#121212] group-hover:text-brand-red transition-colors line-clamp-2">
+                <div className="mt-3.5 space-y-1">
+                  <h3 className="text-sm font-bold leading-snug text-[#121212] group-hover:text-brand-red transition-colors line-clamp-2">
                     {video.title}
                   </h3>
-                  <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">
+                  <p className="text-gray-400 text-[9px] font-extrabold uppercase tracking-widest">
                     Featured Replay
                   </p>
                 </div>
@@ -268,6 +333,7 @@ export default function VideosPage() {
         </div>
       )}
 
+      {/* Video Player Modal */}
       <AnimatePresence>
         {selectedVideo && (
           <motion.div 
@@ -278,8 +344,7 @@ export default function VideosPage() {
           >
             <button 
               onClick={() => setSelectedVideo(null)}
-              className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-red hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider transition-all z-[110] shadow-[0_4px_20px_rgba(255,0,0,0.4)] active:scale-95"
-              aria-label="Close Player"
+              className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-red hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider transition-all z-[110] shadow-[0_4px_20px_rgba(255,0,0,0.4)]"
             >
               <X size={16} />
               <span>Close Player</span>
@@ -292,9 +357,9 @@ export default function VideosPage() {
                 recommendations={filteredVideos.filter(v => v.id !== selectedVideo.id)}
                 startAt={startAt}
               />
-              <div className="mt-8 space-y-2">
-                <h2 className="text-3xl font-bold uppercase tracking-tight">{selectedVideo.title}</h2>
-                <p className="text-gray-500 font-bold text-xs uppercase tracking-widest">Featured Replay • RingZone Original</p>
+              <div className="mt-8 space-y-2 text-white">
+                <h2 className="text-2xl md:text-3xl font-extrabold uppercase tracking-tight">{selectedVideo.title}</h2>
+                <p className="text-gray-400 font-extrabold text-[10px] uppercase tracking-widest">Featured Replay • RawSports Original</p>
               </div>
             </div>
           </motion.div>
@@ -302,15 +367,12 @@ export default function VideosPage() {
       </AnimatePresence>
 
       {!loading && filteredVideos.length === 0 && (
-        <div className="py-20 flex flex-col items-center justify-center text-center space-y-4">
-          <div className="p-6 rounded-full bg-white/5">
-            <PlayCircle size={48} className="text-gray-700" />
-          </div>
-          <h3 className="text-xl font-bold uppercase text-white">No Videos Found</h3>
-          <p className="text-gray-500 text-sm max-w-xs">Try exploring another category or check back later for new content.</p>
+        <div className="py-20 flex flex-col items-center justify-center text-center space-y-3">
+          <PlayCircle size={40} className="text-gray-300" />
+          <h3 className="text-base font-bold uppercase text-[#121212]">No Videos Found</h3>
+          <p className="text-gray-500 text-xs max-w-xs">Try exploring another category or check back later for new content.</p>
         </div>
       )}
     </div>
   );
 }
-
