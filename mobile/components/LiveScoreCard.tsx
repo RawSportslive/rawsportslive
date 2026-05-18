@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
   eventTime: {
     color: '#00ff66',
     fontSize: 10,
-    fontWeight: '950',
+    fontWeight: '900',
     width: 50,
   },
   eventDot: {

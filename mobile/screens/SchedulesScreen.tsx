@@ -8,7 +8,8 @@ import {
   ActivityIndicator, 
   ScrollView,
   Image,
-  Dimensions
+  Dimensions,
+  TouchableOpacity
 } from 'react-native';
 import { SportsSelector } from '../components/SportsSelector';
 import { useFixtures, useStandings } from '../hooks/useSportsData';
@@ -452,7 +453,7 @@ const styles = StyleSheet.create({
   formLetter: {
     color: '#050505',
     fontSize: 8,
-    fontWeight: '950',
+    fontWeight: '900',
   },
   emptyContainer: {
     alignItems: 'center',
