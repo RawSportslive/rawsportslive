@@ -76,16 +76,13 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
       {/* Top Bar */}
-      <header className="sticky top-0 z-50 bg-brand-red shadow-lg border-b border-white/5 app-top-header">
+      <header className="sticky top-0 z-50 bg-black shadow-lg border-b border-white/5 app-top-header">
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-4">
             <Menu className="text-white cursor-pointer hover:text-red-100" />
-            <img 
-              src="/logo.png" 
-              alt="RawSports Live" 
-              className="h-14 sm:h-16 md:h-18 object-contain" 
-              style={{ height: '56px', width: 'auto', objectFit: 'contain' }}
-            />
+            <div className="font-display font-black text-xl md:text-2xl tracking-tighter uppercase italic select-none text-white">
+              RAW<span className="text-brand-red">SPORTS</span><span className="text-[10px] align-top ml-0.5 text-white/70 not-italic">LIVE</span>
+            </div>
           </div>
           <div className="flex items-center gap-5">
             <Search size={20} className="text-white cursor-pointer hover:text-red-100" />
