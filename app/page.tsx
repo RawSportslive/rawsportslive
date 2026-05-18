@@ -76,19 +76,19 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
       {/* Top Bar */}
-      <header className="sticky top-0 z-50 bg-black shadow-lg border-b border-white/5 app-top-header">
+      <header className="sticky top-0 z-50 shadow-lg app-top-header" style={{ backgroundColor: '#FFBF00', paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-4">
-            <Menu className="text-white cursor-pointer hover:text-red-100" />
-            <div className="font-display font-black text-xl md:text-2xl tracking-tighter uppercase italic select-none text-white">
-              RAW<span className="text-brand-red">SPORTS</span><span className="text-[10px] align-top ml-0.5 text-white/70 not-italic">LIVE</span>
+            <Menu className="cursor-pointer" color="#000" />
+            <div className="font-display font-black text-xl md:text-2xl tracking-tighter uppercase italic select-none text-black">
+              RAW<span className="text-white">SPORTS</span><span className="text-[10px] align-top ml-0.5 text-black/60 not-italic">LIVE</span>
             </div>
           </div>
           <div className="flex items-center gap-5">
-            <Search size={20} className="text-white cursor-pointer hover:text-red-100" />
+            <Search size={20} className="cursor-pointer" color="#000" />
             <div className="relative cursor-pointer group">
-              <Bell size={20} className="text-white group-hover:text-red-100" />
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-white rounded-full border-2 border-brand-red" />
+              <Bell size={20} color="#000" />
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-black rounded-full border-2 border-white" />
             </div>
           </div>
         </div>

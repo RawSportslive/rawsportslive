@@ -80,7 +80,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
       <body suppressHydrationWarning className="bg-brand-black text-[#121212] selection:bg-[#FFBF00] selection:text-white">
-        <div className="fixed top-0 left-0 right-0 h-[env(safe-area-inset-top)] bg-[#FFBF00] z-[9999]" />
         <ClientLayout>{children}</ClientLayout>
       </body>
     </html>

@@ -28,7 +28,6 @@ html, body {
   height: 100%;
   overscroll-behavior: none !important;
   overscroll-behavior-y: none !important;
-  padding-top: env(safe-area-inset-top);
 }
 
 body {
@@ -138,12 +137,13 @@ button.bg-brand-red *,
   color: #ffffff !important;
 }
 
-/* Black Sticky Top Bar Header */
+/* Amber Sticky Top Bar Header */
 .app-top-header,
-.app-top-header *,
-.app-top-header svg,
 .app-top-header button {
-  color: #ffffff !important;
+  color: #000000 !important;
+}
+.app-top-header svg {
+  color: #000000 !important;
 }
 
 /* Hero Dark Slider Text Exceptions (Must remain white!) */
