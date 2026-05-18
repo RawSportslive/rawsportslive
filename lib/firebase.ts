@@ -3,6 +3,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, getDocFromServer } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAnalytics, isSupported } from 'firebase/analytics';
+import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBwNbegQIrZicq7_GItryuyESSQdle7fM4",
@@ -32,6 +33,33 @@ export const db = typeof window !== 'undefined'
 export const analytics = typeof window !== 'undefined' ? 
   isSupported().then(yes => yes ? getAnalytics(app) : null) : 
   null;
+
+// Firebase Cloud Messaging (Push Notifications)
+export const messaging = typeof window !== 'undefined' ? getMessaging(app) : null;
+
+// VAPID key from Firebase Console → Project Settings → Cloud Messaging → Web Push Certificates
+// ⚠️ YOU MUST ADD YOUR VAPID KEY HERE after getting it from Firebase Console
+const VAPID_KEY = process.env.NEXT_PUBLIC_VAPID_KEY || '';
+
+// Request notification permission and get FCM token
+export async function requestNotificationPermission(): Promise<string | null> {
+  if (!messaging || typeof window === 'undefined') return null;
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') return null;
+    const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+    return token;
+  } catch (err) {
+    console.error('FCM token error:', err);
+    return null;
+  }
+}
+
+// Listen for foreground messages
+export function onForegroundMessage(callback: (payload: any) => void) {
+  if (!messaging) return () => {};
+  return onMessage(messaging, callback);
+}
 
 // Connection test as per critical constraint
 export async function testFirebaseConnection() {

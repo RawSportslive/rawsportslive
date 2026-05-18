@@ -8,6 +8,7 @@ import Hero from '@/components/Hero';
 import NewsCard from '@/components/NewsCard';
 import SectionHeader from '@/components/SectionHeader';
 import VideoPlayer from '@/components/VideoPlayer';
+import VideoEngagement from '@/components/VideoEngagement';
 import { PlayCircle, Trophy, Search, Bell, Menu, Loader2, X } from 'lucide-react';
 import Image from 'next/image';
 
@@ -16,6 +17,21 @@ export default function Home() {
   const [videos, setVideos] = useState<any[]>([]);
   const [activeVideo, setActiveVideo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  // Lock body scroll when video modal is open
+  useEffect(() => {
+    if (activeVideo) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [activeVideo]);
 
   useEffect(() => {
     // 1. Listen for news updates in real-time
@@ -81,7 +97,7 @@ export default function Home() {
           <div className="flex items-center gap-4">
             <Menu className="cursor-pointer" color="#000" />
             <div className="font-display font-black text-xl md:text-2xl tracking-tighter uppercase italic select-none text-black">
-              RAW<span className="text-white">SPORTS</span><span className="text-[10px] align-top ml-0.5 text-black/60 not-italic">LIVE</span>
+              RAW<span className="text-white">SPORTS</span><span className="text-[10px] align-top ml-0.5 text-[#ff0000] font-black not-italic">LIVE</span>
             </div>
           </div>
           <div className="flex items-center gap-5">
@@ -108,7 +124,8 @@ export default function Home() {
             >
               <button 
                 onClick={() => setActiveVideo(null)}
-                className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-red hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider transition-all z-[110] shadow-[0_4px_20px_rgba(255,0,0,0.4)] active:scale-95"
+              className="absolute right-4 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#FFBF00] hover:bg-amber-500 text-black font-bold text-xs uppercase tracking-wider transition-all z-[110] shadow-lg active:scale-95"
+                style={{ top: 'calc(env(safe-area-inset-top) + 1rem)' }}
                 aria-label="Close Player"
               >
                 <X size={16} />
@@ -121,10 +138,11 @@ export default function Home() {
                   thumbnail={activeVideo.thumbnail}
                   recommendations={videos.filter(v => v.id !== activeVideo.id)} 
                 />
-                <div className="mt-8 space-y-2">
+                <div className="mt-6 space-y-2">
                   <h2 className="text-3xl font-bold uppercase tracking-tight">{activeVideo.title}</h2>
                   <p className="text-gray-500 font-bold text-xs uppercase tracking-widest">{activeVideo.category} • RawSports Live Original</p>
                 </div>
+                <VideoEngagement videoId={activeVideo.id} videoTitle={activeVideo.title} />
               </div>
             </motion.div>
           )}

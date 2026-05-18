@@ -343,11 +343,14 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
       onClick={resetTimer}
       style={isPseudoLandscape ? {
         position: 'fixed',
-        top: '50%',
-        left: '50%',
+        top: 0,
+        left: 0,
         width: '100vh',
         height: '100vw',
         transform: 'translate(-50%, -50%) rotate(90deg)',
+        transformOrigin: 'center center',
+        marginLeft: '50vw',
+        marginTop: '50vh',
         zIndex: 99999,
         borderRadius: 0,
         maxWidth: 'none',

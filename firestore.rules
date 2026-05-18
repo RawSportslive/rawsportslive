@@ -42,6 +42,10 @@ service cloud.firestore {
       match /bookmarks/{id} {
         allow read, write: if isOwner(userId);
       }
+      // FCM push notification tokens
+      match /tokens/{tokenId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     // 3. Public Content (News, Videos, Wrestlers, Quizzes)
@@ -51,9 +55,29 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     
-    match /videos/{id} {
+    match /videos/{videoId} {
       allow read: if true;
       allow write: if isAdmin();
+
+      // Likes — only the owner can toggle their own like
+      match /likes/{userId} {
+        allow read: if true;
+        allow write: if isOwner(userId);
+      }
+
+      // Dislikes — only the owner can toggle their own dislike
+      match /dislikes/{userId} {
+        allow read: if true;
+        allow write: if isOwner(userId);
+      }
+
+      // Comments — anyone can read, signed-in users can create,
+      // only the comment author can update/delete
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isSignedIn();
+        allow update, delete: if isSignedIn() && request.auth.uid == resource.data.userId;
+      }
     }
     
     match /wrestlers/{id} {

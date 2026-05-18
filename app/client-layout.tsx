@@ -5,15 +5,48 @@ import { AuthProvider } from '@/context/AuthContext';
 import BottomNav from '@/components/BottomNav';
 import ContentPreloader from '@/components/ContentPreloader';
 import { usePathname } from 'next/navigation';
+import { requestNotificationPermission, onForegroundMessage } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdminPage = pathname?.startsWith('/admin');
   const [showSplash, setShowSplash] = useState(true);
+  const [toast, setToast] = useState<{ title: string; body: string } | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 2500);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Register service worker + request push notification permission
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(console.error);
+    }
+    // Request permission after 3s to not be too aggressive
+    const t = setTimeout(async () => {
+      const token = await requestNotificationPermission();
+      if (token && auth.currentUser) {
+        await setDoc(
+          doc(db, `users/${auth.currentUser.uid}/tokens`, token.slice(-20)),
+          { token, createdAt: serverTimestamp() },
+          { merge: true }
+        );
+      }
+    }, 3000);
+    // Listen for foreground push messages and show toast
+    const unsub = onForegroundMessage((payload: any) => {
+      setToast({
+        title: payload.notification?.title || 'RawSports LIVE',
+        body: payload.notification?.body || '',
+      });
+      setTimeout(() => setToast(null), 5000);
+    });
+    return () => { clearTimeout(t); if (typeof unsub === 'function') unsub(); };
   }, []);
 
   useEffect(() => {
@@ -55,10 +88,26 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       {showSplash && (
         <div className="fixed inset-0 z-[10000] bg-[#FFBF00] flex items-center justify-center">
           <h1 className="text-black text-4xl md:text-6xl font-black italic tracking-tighter">
-            RAW<span className="text-white">SPORTS</span> <span className="text-white text-xl md:text-3xl align-top ml-1 not-italic">LIVE</span>
+            RAW<span className="text-white">SPORTS</span> <span className="text-[#ff0000] text-xl md:text-3xl align-top ml-1 not-italic font-black">LIVE</span>
           </h1>
         </div>
       )}
+
+      {/* Foreground notification toast */}
+      {toast && (
+        <div
+          className="fixed top-4 left-4 right-4 z-[9999] flex items-start gap-3 bg-[#FFBF00] text-black rounded-2xl p-4 shadow-2xl"
+          style={{ top: 'calc(env(safe-area-inset-top) + 1rem)' }}
+          onClick={() => setToast(null)}
+        >
+          <img src="/logo.png" alt="logo" className="w-9 h-9 rounded-xl flex-shrink-0 object-cover" />
+          <div className="flex-1 min-w-0">
+            <p className="font-black text-sm uppercase tracking-wide truncate">{toast.title}</p>
+            <p className="text-xs text-black/70 mt-0.5 line-clamp-2">{toast.body}</p>
+          </div>
+        </div>
+      )}
+
       <ContentPreloader />
       <main className={`${isAdminPage ? '' : 'pb-24'} min-h-screen flex flex-col`}>
         {children}
