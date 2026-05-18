@@ -4,6 +4,7 @@ import './globals.css';
 import ClientLayout from './client-layout';
 
 export const viewport: Viewport = {
+  themeColor: '#FFBF00',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -76,9 +77,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Bulletproof status bar filled red color */}
         <meta name="theme-color" content="#FFBF00" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
-      <body suppressHydrationWarning className="bg-brand-black text-[#121212] selection:bg-brand-red selection:text-white">
+      <body suppressHydrationWarning className="bg-brand-black text-[#121212] selection:bg-[#FFBF00] selection:text-white">
+        <div className="fixed top-0 left-0 right-0 h-[env(safe-area-inset-top)] bg-[#FFBF00] z-[9999]" />
         <ClientLayout>{children}</ClientLayout>
       </body>
     </html>

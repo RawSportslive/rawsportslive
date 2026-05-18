@@ -28,6 +28,7 @@ html, body {
   height: 100%;
   overscroll-behavior: none !important;
   overscroll-behavior-y: none !important;
+  padding-top: env(safe-area-inset-top);
 }
 
 body {
