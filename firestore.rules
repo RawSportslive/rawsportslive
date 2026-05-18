@@ -104,7 +104,32 @@ service cloud.firestore {
       allow write: if isAdmin() || request.resource.data.syncToken == "ringzone-cron-secret-2026";
     }
 
-    // 7. Default Deny for everything else
+    // 7. Sports Hub (Settings, Banners, Analytics, Notifications)
+    // Anyone can read, only admins can write
+    match /sportsSettings/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /sportsBanners/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /sportsAnalytics/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+      // Allow any user to increment views or clicks counters securely
+      allow update: if true && 
+        request.resource.data.diff(resource.data).affectedKeys().hasAny(['views', 'clicks', 'favoritesCount']);
+    }
+    
+    match /pushNotifications/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 8. Default Deny for everything else
     match /{document=**} {
       allow read, write: if false;
     }
