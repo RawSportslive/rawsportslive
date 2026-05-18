@@ -218,6 +218,37 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
     }
   };
 
+  // Synchronize fullscreen active state with document.body class
+  useEffect(() => {
+    const doc = document as any;
+    const isFs = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement);
+    const active = isPseudoLandscape || isFs;
+
+    if (active) {
+      document.body.classList.add('fullscreen-active');
+    } else {
+      document.body.classList.remove('fullscreen-active');
+    }
+
+    const handleFsChangeClass = () => {
+      const isFsNow = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement);
+      if (isFsNow || isPseudoLandscape) {
+        document.body.classList.add('fullscreen-active');
+      } else {
+        document.body.classList.remove('fullscreen-active');
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFsChangeClass);
+    document.addEventListener('webkitfullscreenchange', handleFsChangeClass);
+    
+    return () => {
+      document.body.classList.remove('fullscreen-active');
+      document.removeEventListener('fullscreenchange', handleFsChangeClass);
+      document.removeEventListener('webkitfullscreenchange', handleFsChangeClass);
+    };
+  }, [isPseudoLandscape]);
+
   useEffect(() => {
     const handleFsChange = () => {
       const doc = document as any;
@@ -302,6 +333,7 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
       ref={containerRef}
       className={`relative aspect-video bg-black rounded-3xl overflow-hidden border border-white/5 group transition-all duration-300 ${showControls ? 'cursor-default' : 'cursor-none'}`}
       onMouseMove={resetTimer}
+      onTouchStart={resetTimer}
       onClick={resetTimer}
       style={isPseudoLandscape ? {
         position: 'fixed',
@@ -354,7 +386,7 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             className="absolute top-0 left-0 right-0 bottom-24 z-[70] flex items-center justify-center cursor-pointer"
-            onMouseDown={(e) => { 
+            onClick={(e) => { 
               e.stopPropagation(); 
               startPlayback(); 
             }}
@@ -371,10 +403,14 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
       {/* Invisible Click Toggle Layer (Active during playback) */}
       {hasStarted && (
         <div 
-          className="absolute top-0 left-0 right-0 bottom-24 z-[65] cursor-pointer"
-          onMouseDown={(e) => {
+          className="absolute inset-0 bottom-20 z-[65] cursor-pointer"
+          onClick={(e) => {
             e.stopPropagation();
             togglePlay();
+            resetTimer();
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
             resetTimer();
           }}
         />
@@ -465,7 +501,7 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
             />
           </div>
 
-          <div className="p-3 flex items-center justify-between">
+          <div className={`p-3 flex items-center justify-between ${isPseudoLandscape ? 'px-12' : ''}`}>
             <div className="flex items-center gap-5">
               <button onClick={togglePlay} className="text-white hover:text-brand-red transition-colors">
                 {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}

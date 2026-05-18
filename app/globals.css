@@ -62,3 +62,123 @@ body {
 .text-glow {
   text-shadow: 0 0 10px rgba(225, 29, 72, 0.5);
 }
+
+/* ==========================================
+   GLOBAL LIGHT THEME TEXT & LAYOUT OVERRIDES 
+   ========================================== */
+
+/* 1. Body and default color enforcement */
+body {
+  background-color: #faf9f6 !important;
+  color: #121212 !important;
+}
+
+/* 2. Overriding Tailwind text-white utility classes to black on creamy white */
+.text-white {
+  color: #121212 !important;
+}
+.text-white\/90 {
+  color: rgba(18, 18, 18, 0.9) !important;
+}
+.text-white\/70 {
+  color: rgba(18, 18, 18, 0.7) !important;
+}
+.text-white\/50 {
+  color: rgba(18, 18, 18, 0.5) !important;
+}
+.text-white\/30 {
+  color: rgba(18, 18, 18, 0.3) !important;
+}
+.text-gray-300 {
+  color: #2a2a2a !important;
+}
+.text-gray-400 {
+  color: #4a4a4a !important;
+}
+.text-gray-500 {
+  color: #6a6a6a !important;
+}
+.text-gray-600 {
+  color: #8a8a8a !important;
+}
+
+/* 3. Ensure input elements show up with correct contrast */
+input {
+  color: #121212 !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+input::placeholder {
+  color: #8a8a8a !important;
+}
+
+/* 4. White text exceptions for dark context components */
+
+/* Red Filled Containers (Buttons, Banners, Active Highlights) */
+.bg-brand-red,
+.bg-brand-red *,
+.bg-brand-red p,
+.bg-brand-red span,
+.bg-brand-red h1,
+.bg-brand-red h2,
+.bg-brand-red h3,
+.bg-brand-red h4,
+.bg-brand-red svg,
+button.bg-brand-red,
+button.bg-brand-red *,
+.bg-red-600,
+.bg-red-600 *,
+.bg-red-700,
+.bg-red-700 * {
+  color: #ffffff !important;
+}
+
+/* Black Sticky Top Bar Header */
+header,
+header *,
+header svg,
+header button {
+  color: #ffffff !important;
+}
+
+/* Video Player internal elements (Play head, controls overlay, volume, share) */
+.aspect-video,
+.aspect-video *,
+.aspect-video svg,
+.aspect-video p,
+.aspect-video span,
+.aspect-video h2,
+.aspect-video button {
+  color: #ffffff !important;
+}
+
+/* Bottom Navigation Bar (Should be dark and elegant) */
+nav.fixed.bottom-0 {
+  background-color: #080808 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+/* Bottom nav links: preserve red color when active! */
+nav.fixed.bottom-0 .text-brand-red,
+nav.fixed.bottom-0 .text-brand-red * {
+  color: #ff0000 !important;
+}
+/* Bottom nav inactive links: keep gray */
+nav.fixed.bottom-0 .text-gray-500,
+nav.fixed.bottom-0 .text-gray-600 {
+  color: #6a6a6a !important;
+}
+
+/* Hide Bottom Nav entirely during active Video Fullscreen/Pseudo-Fullscreen */
+body.fullscreen-active nav {
+  display: none !important;
+}
+
+/* 5. Custom card container styles */
+.bg-white\/5 {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+}
+.border-white\/5 {
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+.border-white\/10 {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
