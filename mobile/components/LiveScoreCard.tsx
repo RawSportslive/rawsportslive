@@ -36,7 +36,7 @@ export const LiveScoreCard: React.FC<LiveScoreCardProps> = ({ match }) => {
       case 'football': return '#00ff66';
       case 'cricket': return '#ffaa00';
       case 'basketball': return '#ff5500';
-      case 'ufc': return '#ff0000';
+      case 'ufc': return '#FFBF00';
       case 'f1': return '#00ccff';
       case 'tennis': return '#dfff00';
       default: return '#ff0055';
@@ -126,7 +126,7 @@ export const LiveScoreCard: React.FC<LiveScoreCardProps> = ({ match }) => {
           {match.stats && match.stats.length > 0 && (
             <View style={styles.statsSection}>
               <View style={styles.sectionHeader}>
-                <Activity color="#ff0000" size={14} />
+                <Activity color="#FFBF00" size={14} />
                 <Text style={styles.sectionTitle}>MATCH TELEMETRY</Text>
               </View>
               {match.stats.map((stat, i) => (
@@ -143,7 +143,7 @@ export const LiveScoreCard: React.FC<LiveScoreCardProps> = ({ match }) => {
           {match.events && match.events.length > 0 && (
             <View style={styles.eventsSection}>
               <View style={styles.sectionHeader}>
-                <Award color="#ff0000" size={14} />
+                <Award color="#FFBF00" size={14} />
                 <Text style={styles.sectionTitle}>LIVE TIMELINE</Text>
               </View>
               {match.events.map((ev, i) => (
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   liveIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ff000020',
+    backgroundColor: '#FFBF0020',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
@@ -228,10 +228,10 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#ff0000',
+    backgroundColor: '#FFBF00',
   },
   liveText: {
-    color: '#ff0000',
+    color: '#FFBF00',
     fontSize: 9,
     fontWeight: '900',
   },
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   sectionTitle: {
-    color: '#ff0000',
+    color: '#FFBF00',
     fontSize: 10,
     fontWeight: '900',
     letterSpacing: 1.5,
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#ff0000',
+    backgroundColor: '#FFBF00',
     marginHorizontal: 10,
   },
   eventInfo: {

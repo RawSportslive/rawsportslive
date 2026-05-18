@@ -74,8 +74,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   activeTab: {
-    backgroundColor: '#ff0000',
-    borderColor: '#ff0000',
+    backgroundColor: '#FFBF00',
+    borderColor: '#FFBF00',
   },
   inactiveTab: {
     backgroundColor: '#121212',
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   badgeText: {
-    color: '#ff0000',
+    color: '#FFBF00',
     fontSize: 9,
     fontWeight: '900',
     textTransform: 'uppercase',

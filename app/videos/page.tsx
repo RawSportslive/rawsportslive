@@ -223,7 +223,7 @@ export default function VideosPage() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                   <div className="absolute top-2.5 left-2.5">
-                    <span className="bg-[#ff0000] text-white px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider">
+                    <span className="bg-[#FFBF00] text-white px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider">
                       {video.category}
                     </span>
                   </div>

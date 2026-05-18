@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-red: #ff0000;
+  --color-brand-red: #FFBF00;
   --color-brand-black: #faf9f6;
   --color-brand-gray: #f4f1ea;
   --font-display: "Space Grotesk", sans-serif;
@@ -61,7 +61,7 @@ body {
 }
 
 .crimson-gradient {
-  background: linear-gradient(135deg, #ff0000 0%, #881337 100%);
+  background: linear-gradient(135deg, #FFBF00 0%, #881337 100%);
 }
 
 .text-glow {
@@ -166,7 +166,7 @@ button.bg-brand-red *,
 
 /* Ensure Brand Red text is always solid red, even inside text-white parent elements */
 .text-brand-red {
-  color: #ff0000 !important;
+  color: #FFBF00 !important;
 }
 
 /* Video Player internal elements (Play head, controls overlay, volume, share) */
@@ -188,7 +188,7 @@ nav.fixed.bottom-0 {
 /* Bottom nav links: preserve red color when active! */
 nav.fixed.bottom-0 .text-brand-red,
 nav.fixed.bottom-0 .text-brand-red * {
-  color: #ff0000 !important;
+  color: #FFBF00 !important;
 }
 /* Bottom nav inactive links: keep gray */
 nav.fixed.bottom-0 .text-gray-500,

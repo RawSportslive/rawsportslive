@@ -79,7 +79,7 @@ export const SchedulesScreen = () => {
       {/* Main Content Area */}
       {isLoading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator color="#ff0000" size="large" />
+          <ActivityIndicator color="#FFBF00" size="large" />
           <Text style={styles.loadingText}>Fetching arena data...</Text>
         </View>
       ) : subTab === 'fixtures' ? (
@@ -92,7 +92,7 @@ export const SchedulesScreen = () => {
             <RefreshControl
               refreshing={loadingFixtures}
               onRefresh={handleRefresh}
-              tintColor="#ff0000"
+              tintColor="#FFBF00"
             />
           }
           renderItem={({ item }) => (
@@ -163,7 +163,7 @@ export const SchedulesScreen = () => {
                 <Text style={[styles.cellHeader, { width: 40 }]}>W</Text>
                 {activeSport === 'football' && <Text style={[styles.cellHeader, { width: 40 }]}>D</Text>}
                 <Text style={[styles.cellHeader, { width: 40 }]}>L</Text>
-                <Text style={[styles.cellHeader, { width: 50, color: '#ff0000' }]}>PTS</Text>
+                <Text style={[styles.cellHeader, { width: 50, color: '#FFBF00' }]}>PTS</Text>
                 <Text style={[styles.cellHeader, { width: 100 }]}>FORM</Text>
               </View>
 
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 12,
-    backgroundColor: '#ff0000',
+    backgroundColor: '#FFBF00',
   },
   headerTitle: {
     color: '#ffffff',
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   activeTab: {
-    backgroundColor: '#ff0000',
+    backgroundColor: '#FFBF00',
   },
   inactiveTab: {
     backgroundColor: 'transparent',
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   fixtureLeague: {
-    color: '#ff0000',
+    color: '#FFBF00',
     fontSize: 11,
     fontWeight: '900',
   },
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   vsText: {
-    color: '#ff0000',
+    color: '#FFBF00',
     fontSize: 14,
     fontWeight: '900',
     fontStyle: 'italic',

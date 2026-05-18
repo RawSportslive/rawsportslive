@@ -391,8 +391,8 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
       {/* Fallback Overlay for Restricted Playbacks */}
       {hasError && (
         <div className="absolute inset-0 bg-black/95 flex flex-col items-center justify-center p-6 text-center z-[90]">
-          <div className="w-16 h-16 bg-[#ff0000]/10 rounded-full flex items-center justify-center mb-4">
-            <svg className="w-8 h-8 text-[#ff0000] fill-current animate-pulse" viewBox="0 0 24 24"><path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.545 12 3.545 12 3.545s-7.518 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.87.508 9.388.508 9.388.508s7.518 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+          <div className="w-16 h-16 bg-[#FFBF00]/10 rounded-full flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-[#FFBF00] fill-current animate-pulse" viewBox="0 0 24 24"><path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.545 12 3.545 12 3.545s-7.518 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.87.508 9.388.508 9.388.508s7.518 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
           </div>
           <h4 className="text-base font-extrabold text-white uppercase tracking-wider mb-2">RAWSPORTS ARENA PLAYER</h4>
           <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest max-w-xs mb-6 leading-relaxed">
@@ -402,7 +402,7 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
             href={url} 
             target="_blank" 
             rel="noopener noreferrer" 
-            className="px-6 py-3 bg-[#ff0000] hover:bg-red-700 text-white font-black text-[10.5px] uppercase tracking-widest rounded-xl transition-all shadow-[0_4px_20px_rgba(255,0,0,0.4)] active:scale-95 pointer-events-auto"
+            className="px-6 py-3 bg-[#FFBF00] hover:bg-red-700 text-white font-black text-[10.5px] uppercase tracking-widest rounded-xl transition-all shadow-[0_4px_20px_rgba(255,0,0,0.4)] active:scale-95 pointer-events-auto"
           >
             PLAY REPLAY IN HD
           </a>

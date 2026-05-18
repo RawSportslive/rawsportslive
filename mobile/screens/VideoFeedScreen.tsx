@@ -211,7 +211,7 @@ export const VideoFeedScreen = () => {
     return (
       <View style={styles.carouselContainer}>
         <View style={styles.sectionHeader}>
-          <Trophy color="#ff0000" size={18} />
+          <Trophy color="#FFBF00" size={18} />
           <Text style={styles.sectionTitle}>FEATURED MATCHES</Text>
         </View>
         <ScrollView 
@@ -242,7 +242,7 @@ export const VideoFeedScreen = () => {
         </ScrollView>
         <View style={styles.divider} />
         <View style={styles.sectionHeader}>
-          <Calendar color="#ff0000" size={18} />
+          <Calendar color="#FFBF00" size={18} />
           <Text style={styles.sectionTitle}>LATEST UPLOADS</Text>
         </View>
       </View>
@@ -307,14 +307,14 @@ export const VideoFeedScreen = () => {
             <RefreshControl 
               refreshing={isRefreshing} 
               onRefresh={handleRefresh}
-              tintColor="#ff0000"
+              tintColor="#FFBF00"
             />
           }
           onEndReached={fetchNextPage}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
             isLoadingMore ? (
-              <ActivityIndicator color="#ff0000" style={styles.loader} />
+              <ActivityIndicator color="#FFBF00" style={styles.loader} />
             ) : null
           }
           ListEmptyComponent={
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 12,
-    backgroundColor: '#ff0000',
+    backgroundColor: '#FFBF00',
   },
   headerTitle: {
     color: '#fff',
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   badgeText: {
-    color: '#ff0000',
+    color: '#FFBF00',
     fontSize: 10,
     fontWeight: 'bold',
   },
@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#ff0000',
+    backgroundColor: '#FFBF00',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -530,12 +530,12 @@ const styles = StyleSheet.create({
     zIndex: 9999,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ff0000',
+    backgroundColor: '#FFBF00',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
     gap: 6,
-    shadowColor: '#ff0000',
+    shadowColor: '#FFBF00',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -568,7 +568,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   channelLabel: {
-    color: '#ff0000',
+    color: '#FFBF00',
     fontSize: 12,
     fontWeight: 'bold',
   },
@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#ff0000',
+    backgroundColor: '#FFBF00',
     paddingVertical: 12,
     borderRadius: 12,
     gap: 8,

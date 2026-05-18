@@ -78,7 +78,7 @@ export const SportsDashboardScreen: React.FC<SportsDashboardScreenProps> = ({ on
       {activeTickerMatch && (
         <View style={styles.tickerContainer}>
           <View style={styles.tickerIcon}>
-            <Zap color="#ff0000" size={12} fill="#ff0000" />
+            <Zap color="#FFBF00" size={12} fill="#FFBF00" />
             <Text style={styles.tickerBadgeText}>LIVE ALERT</Text>
           </View>
           <Text style={styles.tickerText} numberOfLines={1}>
@@ -90,7 +90,7 @@ export const SportsDashboardScreen: React.FC<SportsDashboardScreenProps> = ({ on
       {/* Main score feed */}
       {isLoading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator color="#ff0000" size="large" />
+          <ActivityIndicator color="#FFBF00" size="large" />
           <Text style={styles.loadingText}>Connecting to Live Score Gateways...</Text>
         </View>
       ) : (
@@ -102,8 +102,8 @@ export const SportsDashboardScreen: React.FC<SportsDashboardScreenProps> = ({ on
             <RefreshControl
               refreshing={isRefetching}
               onRefresh={handleRefresh}
-              tintColor="#ff0000"
-              colors={['#ff0000']}
+              tintColor="#FFBF00"
+              colors={['#FFBF00']}
             />
           }
           renderItem={({ item }) => <LiveScoreCard match={item} />}
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 12,
-    backgroundColor: '#ff0000',
+    backgroundColor: '#FFBF00',
   },
   headerTitle: {
     color: '#ffffff',
@@ -179,14 +179,14 @@ const styles = StyleSheet.create({
   tickerIcon: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ff000020',
+    backgroundColor: '#FFBF0020',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
     gap: 4,
   },
   tickerBadgeText: {
-    color: '#ff0000',
+    color: '#FFBF00',
     fontSize: 8,
     fontWeight: '900',
   },
@@ -237,12 +237,12 @@ const styles = StyleSheet.create({
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ff0000',
+    backgroundColor: '#FFBF00',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 25,
     gap: 8,
-    shadowColor: '#ff0000',
+    shadowColor: '#FFBF00',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

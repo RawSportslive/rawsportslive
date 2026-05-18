@@ -131,12 +131,12 @@ export default function SportsHubPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-200 pb-6">
         <div>
           <div className="flex items-center gap-2">
-            <span className="bg-[#ff0000] text-white text-[9px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded">
+            <span className="bg-[#FFBF00] text-white text-[9px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded">
               LIVE SCOREBOARD
             </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#121212] uppercase tracking-wider mt-2">
-            Sports <span className="text-[#ff0000]">Live Centre</span>
+            Sports <span className="text-[#FFBF00]">Live Centre</span>
           </h1>
           <p className="text-gray-500 text-xs mt-1 max-w-xl">
             Real-time live scores, match summaries, upcoming fixtures, and league standings.
@@ -148,9 +148,9 @@ export default function SportsHubPage() {
           className="flex items-center gap-2 bg-white hover:bg-gray-50 border border-gray-200/80 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-[#121212] shadow-sm transition-colors"
         >
           {refreshing ? (
-            <RefreshCw className="animate-spin text-[#ff0000]" size={14} />
+            <RefreshCw className="animate-spin text-[#FFBF00]" size={14} />
           ) : (
-            <RefreshCw className="text-[#ff0000]" size={14} />
+            <RefreshCw className="text-[#FFBF00]" size={14} />
           )}
           <span>Refresh Data</span>
         </button>
@@ -169,11 +169,11 @@ export default function SportsHubPage() {
               }}
               className={`flex items-center gap-2 px-5 py-3 rounded-xl border text-sm font-bold uppercase tracking-wide transition-all ${
                 isActive 
-                  ? 'bg-[#ff0000] border-[#ff0000] text-white' 
+                  ? 'bg-[#FFBF00] border-[#FFBF00] text-white' 
                   : 'bg-white border-gray-200 text-gray-700 hover:text-black hover:bg-gray-50'
               }`}
             >
-              <span className={isActive ? 'text-white' : 'text-[#ff0000]'}>{sport.icon}</span>
+              <span className={isActive ? 'text-white' : 'text-[#FFBF00]'}>{sport.icon}</span>
               <span>{sport.name}</span>
             </button>
           );
@@ -185,7 +185,7 @@ export default function SportsHubPage() {
         <button
           onClick={() => setSubTab('live')}
           className={`flex-1 py-3 rounded-lg flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wide transition-all ${
-            subTab === 'live' ? 'bg-[#ff0000] text-white shadow-sm' : 'text-gray-500 hover:text-black'
+            subTab === 'live' ? 'bg-[#FFBF00] text-white shadow-sm' : 'text-gray-500 hover:text-black'
           }`}
         >
           <Zap size={13} /> Live scores
@@ -193,7 +193,7 @@ export default function SportsHubPage() {
         <button
           onClick={() => setSubTab('fixtures')}
           className={`flex-1 py-3 rounded-lg flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wide transition-all ${
-            subTab === 'fixtures' ? 'bg-[#ff0000] text-white shadow-sm' : 'text-gray-500 hover:text-black'
+            subTab === 'fixtures' ? 'bg-[#FFBF00] text-white shadow-sm' : 'text-gray-500 hover:text-black'
           }`}
         >
           <Calendar size={13} /> Fixtures
@@ -201,7 +201,7 @@ export default function SportsHubPage() {
         <button
           onClick={() => setSubTab('standings')}
           className={`flex-1 py-3 rounded-lg flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wide transition-all ${
-            subTab === 'standings' ? 'bg-[#ff0000] text-white shadow-sm' : 'text-gray-500 hover:text-black'
+            subTab === 'standings' ? 'bg-[#FFBF00] text-white shadow-sm' : 'text-gray-500 hover:text-black'
           }`}
         >
           <Trophy size={13} /> Standings
@@ -217,7 +217,7 @@ export default function SportsHubPage() {
             exit={{ opacity: 0 }}
             className="flex flex-col items-center justify-center py-20 gap-3"
           >
-            <Activity className="animate-pulse text-[#ff0000]" size={36} />
+            <Activity className="animate-pulse text-[#FFBF00]" size={36} />
             <p className="text-gray-500 font-bold text-xs uppercase tracking-wider">Syncing live match servers...</p>
           </motion.div>
         ) : subTab === 'live' ? (
@@ -238,7 +238,7 @@ export default function SportsHubPage() {
                 </p>
                 <button
                   onClick={() => setSubTab('fixtures')}
-                  className="bg-[#ff0000] hover:bg-red-700 text-white font-bold text-xs uppercase tracking-widest px-5 py-2.5 rounded-lg transition-colors"
+                  className="bg-[#FFBF00] hover:bg-red-700 text-white font-bold text-xs uppercase tracking-widest px-5 py-2.5 rounded-lg transition-colors"
                 >
                   View upcoming fixtures
                 </button>
@@ -263,7 +263,7 @@ export default function SportsHubPage() {
                       <div className="flex items-center gap-2">
                         {match.status === 'live' && (
                           <div className="flex items-center gap-1 bg-red-50 px-2.5 py-0.5 rounded text-red-600 border border-red-100">
-                            <span className="w-1.5 h-1.5 bg-[#ff0000] rounded-full animate-ping" />
+                            <span className="w-1.5 h-1.5 bg-[#FFBF00] rounded-full animate-ping" />
                             <span className="text-[9px] font-extrabold uppercase tracking-wide">LIVE</span>
                           </div>
                         )}
@@ -367,7 +367,7 @@ export default function SportsHubPage() {
                             <div className="space-y-4 pl-2 border-l border-gray-300 ml-1">
                               {match.events.map((ev: any, i: number) => (
                                 <div key={i} className="relative pl-5">
-                                  <span className="absolute -left-[13px] top-1.5 w-2 h-2 bg-[#ff0000] rounded-full border border-white" />
+                                  <span className="absolute -left-[13px] top-1.5 w-2 h-2 bg-[#FFBF00] rounded-full border border-white" />
                                   <div className="text-xs">
                                     <div className="flex items-center gap-1.5">
                                       <span className="text-emerald-600 font-extrabold">{ev.time}</span>
@@ -415,7 +415,7 @@ export default function SportsHubPage() {
               fixtures.map((item) => (
                 <div key={item.id} className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-sm space-y-4">
                   <div className="flex justify-between items-center border-b border-gray-100 pb-2.5">
-                    <span className="text-[9px] font-bold uppercase text-[#ff0000] tracking-wider">{item.league}</span>
+                    <span className="text-[9px] font-bold uppercase text-[#FFBF00] tracking-wider">{item.league}</span>
                     <span className="text-xs text-gray-500 font-bold">{new Date(item.date).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
                   </div>
 
@@ -432,7 +432,7 @@ export default function SportsHubPage() {
                     </div>
 
                     <div className="flex flex-col items-center">
-                      <span className="text-[9px] font-bold text-[#ff0000] italic">VS</span>
+                      <span className="text-[9px] font-bold text-[#FFBF00] italic">VS</span>
                       <span className="text-[9px] text-gray-500 font-semibold">{new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
 
@@ -486,7 +486,7 @@ export default function SportsHubPage() {
                       <th className="py-3.5 px-5 text-center w-16">Wins</th>
                       {activeSport === 'football' && <th className="py-3.5 px-5 text-center w-16">Draws</th>}
                       <th className="py-3.5 px-5 text-center w-16">Losses</th>
-                      <th className="py-3.5 px-5 text-center w-20 text-[#ff0000]">Points</th>
+                      <th className="py-3.5 px-5 text-center w-20 text-[#FFBF00]">Points</th>
                       <th className="py-3.5 px-5 w-32">Recent Form</th>
                     </tr>
                   </thead>

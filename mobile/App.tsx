@@ -24,6 +24,7 @@ Notifications.setNotificationHandler({
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'schedules' | 'wrestling'>('home');
+  const [isSplashVisible, setIsSplashVisible] = useState(true);
 
   useEffect(() => {
     // Request permission for push notifications
@@ -41,6 +42,12 @@ export default function App() {
     };
 
     registerForPushNotifications();
+
+    const timer = setTimeout(() => {
+      setIsSplashVisible(false);
+    }, 2500);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const renderActiveScreen = () => {
@@ -58,10 +65,17 @@ export default function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {isSplashVisible ? (
+        <View style={styles.splashContainer}>
+          <Text style={styles.splashText}>
+            RAW<Text style={styles.splashTextWhite}>SPORTS</Text> <Text style={styles.splashTextSmall}>LIVE</Text>
+          </Text>
+        </View>
+      ) : (
       <View style={{ flex: 1, backgroundColor: '#050505' }}>
         {/* Bulletproof iOS status bar color filler */}
         {Platform.OS === 'ios' && (
-          <SafeAreaView style={{ flex: 0, backgroundColor: '#ff0000' }} />
+          <SafeAreaView style={{ flex: 0, backgroundColor: '#FFBF00' }} />
         )}
         
         <SafeAreaView style={{ flex: 1, backgroundColor: '#050505' }}>
@@ -79,9 +93,9 @@ export default function App() {
               onPress={() => setActiveTab('home')}
             >
               <Zap 
-                color={activeTab === 'home' ? '#ff0000' : '#888888'} 
+                color={activeTab === 'home' ? '#FFBF00' : '#888888'} 
                 size={20} 
-                fill={activeTab === 'home' ? '#ff0000' : 'transparent'} 
+                fill={activeTab === 'home' ? '#FFBF00' : 'transparent'} 
               />
               <Text style={[styles.tabLabel, activeTab === 'home' ? styles.activeLabel : styles.inactiveLabel]}>
                 SPORTS HUB
@@ -95,7 +109,7 @@ export default function App() {
               onPress={() => setActiveTab('schedules')}
             >
               <CalIcon 
-                color={activeTab === 'schedules' ? '#ff0000' : '#888888'} 
+                color={activeTab === 'schedules' ? '#FFBF00' : '#888888'} 
                 size={20} 
               />
               <Text style={[styles.tabLabel, activeTab === 'schedules' ? styles.activeLabel : styles.inactiveLabel]}>
@@ -110,9 +124,9 @@ export default function App() {
               onPress={() => setActiveTab('wrestling')}
             >
               <Film 
-                color={activeTab === 'wrestling' ? '#ff0000' : '#888888'} 
+                color={activeTab === 'wrestling' ? '#FFBF00' : '#888888'} 
                 size={20} 
-                fill={activeTab === 'wrestling' ? '#ff0000' : 'transparent'} 
+                fill={activeTab === 'wrestling' ? '#FFBF00' : 'transparent'} 
               />
               <Text style={[styles.tabLabel, activeTab === 'wrestling' ? styles.activeLabel : styles.inactiveLabel]}>
                 WWE PORTAL
@@ -121,12 +135,36 @@ export default function App() {
           </View>
         </SafeAreaView>
       </View>
-      <StatusBar style="light" backgroundColor="#ff0000" translucent={false} />
+      )}
+      <StatusBar style="light" backgroundColor="#FFBF00" translucent={false} />
     </QueryClientProvider>
   );
 }
 
 const styles = StyleSheet.create({
+  splashContainer: {
+    flex: 1,
+    backgroundColor: '#FFBF00',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  splashText: {
+    color: '#000000',
+    fontSize: 40,
+    fontWeight: '900',
+    fontStyle: 'italic',
+    letterSpacing: -1,
+  },
+  splashTextWhite: {
+    color: '#ffffff',
+  },
+  splashTextSmall: {
+    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    fontStyle: 'normal',
+    lineHeight: 20,
+  },
   tabBar: {
     flexDirection: 'row',
     height: 64,
@@ -150,7 +188,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   activeLabel: {
-    color: '#ff0000',
+    color: '#FFBF00',
   },
   inactiveLabel: {
     color: '#888888',

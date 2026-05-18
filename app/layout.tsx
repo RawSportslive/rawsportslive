@@ -74,7 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         
         {/* Bulletproof status bar filled red color */}
-        <meta name="theme-color" content="#ff0000" />
+        <meta name="theme-color" content="#FFBF00" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
