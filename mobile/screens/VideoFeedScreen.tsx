@@ -12,7 +12,8 @@ import {
   TextInput, 
   ScrollView,
   Image,
-  ActivityIndicator
+  ActivityIndicator,
+  Linking
 } from 'react-native';
 import { 
   collection, 
@@ -344,6 +345,14 @@ export const VideoFeedScreen = () => {
                     {new Date(selectedVideo.publishedAt).toLocaleDateString()}
                   </Text>
                 </View>
+                <TouchableOpacity
+                  style={styles.ytDeepLinkButton}
+                  onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${selectedVideo.videoId}`)}
+                  activeOpacity={0.8}
+                >
+                  <Play color="#ffffff" size={12} fill="#ffffff" />
+                  <Text style={styles.ytDeepLinkButtonText}>OPEN IN YOUTUBE APP</Text>
+                </TouchableOpacity>
                 <Text style={styles.modalDesc}>{selectedVideo.description}</Text>
               </ScrollView>
             </View>
@@ -562,5 +571,22 @@ const styles = StyleSheet.create({
     color: '#ccc',
     fontSize: 14,
     lineHeight: 22,
+  },
+  ytDeepLinkButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ff0000',
+    paddingVertical: 12,
+    borderRadius: 12,
+    gap: 8,
+    marginBottom: 20,
+    marginTop: 5,
+  },
+  ytDeepLinkButtonText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: 'bold',
+    letterSpacing: 1,
   }
 });
