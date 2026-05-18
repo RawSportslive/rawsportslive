@@ -8,7 +8,7 @@ import Hero from '@/components/Hero';
 import NewsCard from '@/components/NewsCard';
 import SectionHeader from '@/components/SectionHeader';
 import VideoPlayer from '@/components/VideoPlayer';
-import { PlayCircle, Trophy, Search, Bell, Menu, Loader2 } from 'lucide-react';
+import { PlayCircle, Trophy, Search, Bell, Menu, Loader2, X } from 'lucide-react';
 import Image from 'next/image';
 
 export default function Home() {
@@ -76,7 +76,7 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
       {/* Top Bar */}
-      <header className="sticky top-0 z-50 bg-black shadow-lg border-b border-white/5 app-top-header">
+      <header className="sticky top-0 z-50 bg-brand-red shadow-lg border-b border-white/5 app-top-header">
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-4">
             <Menu className="text-white cursor-pointer hover:text-red-100" />
@@ -106,9 +106,10 @@ export default function Home() {
             >
               <button 
                 onClick={() => setActiveVideo(null)}
-                className="absolute top-8 right-8 text-white/50 hover:text-white text-xs font-bold uppercase tracking-widest z-10"
+                className="absolute top-6 right-6 md:top-8 md:right-8 p-3 rounded-full bg-black/60 hover:bg-brand-red text-white transition-all backdrop-blur-md border border-white/10 z-[110] shadow-2xl flex items-center justify-center group active:scale-95"
+                aria-label="Close Player"
               >
-                Close Player
+                <X size={24} className="group-hover:scale-110 transition-transform" />
               </button>
               <div className="w-full max-w-6xl">
                 <VideoPlayer 

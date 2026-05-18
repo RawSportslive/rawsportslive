@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Image from 'next/image';
-import { PlayCircle, Search, Loader2, RefreshCw } from 'lucide-react';
+import { PlayCircle, Search, Loader2, RefreshCw, X } from 'lucide-react';
 import VideoPlayer from '@/components/VideoPlayer';
 import { db, auth } from '@/lib/firebase';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
@@ -273,9 +273,10 @@ export default function VideosPage() {
           >
             <button 
               onClick={() => setSelectedVideo(null)}
-              className="absolute top-8 right-8 text-white/50 hover:text-white text-xs font-bold uppercase tracking-widest z-10"
+              className="absolute top-6 right-6 md:top-8 md:right-8 p-3 rounded-full bg-black/60 hover:bg-brand-red text-white transition-all backdrop-blur-md border border-white/10 z-[110] shadow-2xl flex items-center justify-center group active:scale-95"
+              aria-label="Close Player"
             >
-              Close Player
+              <X size={24} className="group-hover:scale-110 transition-transform" />
             </button>
             <div className="w-full max-w-6xl">
               <VideoPlayer 

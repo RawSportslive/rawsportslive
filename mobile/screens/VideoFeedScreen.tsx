@@ -106,7 +106,7 @@ export const VideoFeedScreen = () => {
 
       const snap = await getDocs(q);
       
-      let fetchedVideos = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      let fetchedVideos: any[] = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
       // Client-side search filtering
       if (search.trim() !== '') {
@@ -156,7 +156,7 @@ export const VideoFeedScreen = () => {
       }
 
       const snap = await getDocs(q);
-      let newVideos = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      let newVideos: any[] = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
       if (searchQuery.trim() !== '') {
         newVideos = newVideos.filter(video => 
@@ -221,7 +221,7 @@ export const VideoFeedScreen = () => {
               activeOpacity={0.9}
               onPress={() => setSelectedVideo(video)}
             >
-              <Image source={{ uri: video.thumbnail }} style={styles.carouselImage} />
+              <Image source={{ uri: video.thumbnail }} style={styles.carouselImage as any} />
               <View style={styles.carouselPlayOverlay}>
                 <View style={styles.smallPlayButton}>
                   <Play color="#fff" size={16} fill="#fff" />
@@ -326,13 +326,6 @@ export const VideoFeedScreen = () => {
         onRequestClose={() => setSelectedVideo(null)}
       >
         <View style={styles.modalContainer}>
-          <TouchableOpacity 
-            style={styles.closeButton}
-            onPress={() => setSelectedVideo(null)}
-          >
-            <X color="#fff" size={24} />
-          </TouchableOpacity>
-          
           {selectedVideo && (
             <View style={styles.playerWrapper}>
               <YoutubePlayer
@@ -355,6 +348,13 @@ export const VideoFeedScreen = () => {
               </ScrollView>
             </View>
           )}
+
+          <TouchableOpacity 
+            style={styles.closeButton}
+            onPress={() => setSelectedVideo(null)}
+          >
+            <X color="#fff" size={24} />
+          </TouchableOpacity>
         </View>
       </Modal>
     </View>
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: '#fff',
     fontSize: 26,
-    fontWeight: '950',
+    fontWeight: '900',
     fontStyle: 'italic',
     letterSpacing: 1.5,
   },
@@ -504,7 +504,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 40,
     right: 20,
-    zIndex: 10,
+    zIndex: 9999,
     width: 40,
     height: 40,
     borderRadius: 20,

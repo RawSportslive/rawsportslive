@@ -41,9 +41,9 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <View style={{ flex: 1, backgroundColor: '#050505' }}>
-        {/* iOS status bar background filler */}
+        {/* Bulletproof iOS status bar color filler */}
         {Platform.OS === 'ios' && (
-          <View style={{ height: 47, backgroundColor: '#ff0000', width: '100%' }} />
+          <SafeAreaView style={{ flex: 0, backgroundColor: '#ff0000' }} />
         )}
         <SafeAreaView style={{ flex: 1, backgroundColor: '#050505' }}>
           <VideoFeedScreen />
