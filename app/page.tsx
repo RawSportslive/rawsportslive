@@ -18,9 +18,14 @@ export default function Home() {
   const [activeVideo, setActiveVideo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Lock body scroll when video modal is open
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<{ news: any[]; videos: any[] }>({ news: [], videos: [] });
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Lock body scroll when search or video modal is open
   useEffect(() => {
-    if (activeVideo) {
+    if (activeVideo || showSearch) {
       document.body.style.overflow = 'hidden';
       document.body.style.touchAction = 'none';
     } else {
@@ -31,7 +36,7 @@ export default function Home() {
       document.body.style.overflow = '';
       document.body.style.touchAction = '';
     };
-  }, [activeVideo]);
+  }, [activeVideo, showSearch]);
 
   useEffect(() => {
     // 1. Listen for news updates in real-time
@@ -54,11 +59,80 @@ export default function Home() {
       setLoading(false);
     });
 
+    // 3. Auto sync daily news from premium public Sky Sports RSS WWE feed
+    const autoSyncNews = async () => {
+      try {
+        const response = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://www.skysports.com/rss/12040');
+        const data = await response.json();
+        if (data.status === 'ok' && Array.isArray(data.items)) {
+          const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
+          for (const item of data.items.slice(0, 6)) {
+            const newsId = item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            const img = item.thumbnail || item.enclosure?.link || `https://picsum.photos/seed/${newsId}/800/600`;
+            await setDoc(doc(db, 'news', newsId), {
+              title: item.title,
+              excerpt: item.description || 'Catch the latest updates, highlights and roster standings on RawSports Live.',
+              content: item.content || item.description || '',
+              category: 'WWE News',
+              image: img,
+              author: item.author || 'Sky Sports WWE',
+              createdAt: serverTimestamp()
+            }, { merge: true });
+          }
+        }
+      } catch (err) {
+        console.error("Daily news auto sync failed:", err);
+      }
+    };
+
+    autoSyncNews();
+
     return () => {
       unsubscribeNews();
       unsubscribeVideos();
     };
   }, []);
+
+  // 4. Firestore Query-based Hybrid Real Search logic
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults({ news: [], videos: [] });
+      return;
+    }
+
+    const delayDebounce = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const q = searchQuery.toLowerCase();
+        const { getDocs } = await import('firebase/firestore');
+
+        const newsSnap = await getDocs(collection(db, 'news'));
+        const filteredNews = newsSnap.docs
+          .map(d => ({ id: d.id, ...d.data() as any }))
+          .filter(item => 
+            item.title?.toLowerCase().includes(q) || 
+            item.category?.toLowerCase().includes(q) ||
+            item.excerpt?.toLowerCase().includes(q)
+          );
+
+        const videosSnap = await getDocs(collection(db, 'videos'));
+        const filteredVideos = videosSnap.docs
+          .map(d => ({ id: d.id, ...d.data() as any }))
+          .filter(item => 
+            item.title?.toLowerCase().includes(q) || 
+            item.category?.toLowerCase().includes(q)
+          );
+
+        setSearchResults({ news: filteredNews, videos: filteredVideos });
+      } catch (err) {
+        console.error("Firestore search error:", err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 450);
+
+    return () => clearTimeout(delayDebounce);
+  }, [searchQuery]);
 
   const websiteSchema = {
     "@context": "https://schema.org",
@@ -101,7 +175,7 @@ export default function Home() {
             </div>
           </div>
           <div className="flex items-center gap-5">
-            <Search size={20} className="cursor-pointer" color="#000" />
+            <Search size={20} className="cursor-pointer" color="#000" onClick={() => setShowSearch(true)} />
             <div className="relative cursor-pointer group">
               <Bell size={20} color="#000" />
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-black rounded-full border-2 border-white" />
@@ -143,6 +217,136 @@ export default function Home() {
                   <p className="text-gray-500 font-bold text-xs uppercase tracking-widest">{activeVideo.category} • RawSports Live Original</p>
                 </div>
                 <VideoEngagement videoId={activeVideo.id} videoTitle={activeVideo.title} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Global Premium Search Modal */}
+        <AnimatePresence>
+          {showSearch && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="fixed inset-0 z-[150] bg-black/95 backdrop-blur-xl flex flex-col p-6 md:p-12 overflow-y-auto"
+              style={{ paddingTop: 'calc(env(safe-area-inset-top) + 2rem)' }}
+            >
+              <div className="w-full max-w-4xl mx-auto space-y-8">
+                {/* Search Header */}
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={22} />
+                    <input
+                      type="text"
+                      autoFocus
+                      placeholder="Search matches, videos, daily news..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-white text-base md:text-lg font-bold placeholder-gray-500 focus:outline-none focus:border-[#FFBF00] focus:ring-1 focus:ring-[#FFBF00] transition-all"
+                    />
+                  </div>
+                  <button
+                    onClick={() => { setShowSearch(false); setSearchQuery(''); }}
+                    className="p-3 rounded-2xl bg-[#FFBF00] text-black font-bold uppercase hover:bg-amber-500 transition-all flex items-center justify-center"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                {/* Search Results */}
+                <div className="space-y-8">
+                  {isSearching ? (
+                    <div className="flex flex-col items-center justify-center py-16 gap-3">
+                      <Loader2 className="animate-spin text-[#FFBF00]" size={36} />
+                      <p className="text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">Searching Arena...</p>
+                    </div>
+                  ) : searchQuery.trim() ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {/* Videos Section */}
+                      <div className="space-y-4">
+                        <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-white/5 pb-2">
+                          Matches & Videos ({searchResults.videos.length})
+                        </h4>
+                        {searchResults.videos.length > 0 ? (
+                          <div className="space-y-3">
+                            {searchResults.videos.map((video) => (
+                              <div
+                                key={video.id}
+                                onClick={() => {
+                                  setActiveVideo(video);
+                                  setShowSearch(false);
+                                  setSearchQuery('');
+                                }}
+                                className="flex items-center gap-4 bg-white/5 hover:bg-white/10 p-3 rounded-2xl cursor-pointer border border-white/5 transition-all group"
+                              >
+                                <div className="relative w-20 aspect-video rounded-lg overflow-hidden flex-shrink-0">
+                                  <img
+                                    src={video.thumbnail}
+                                    alt={video.title}
+                                    className="object-cover w-full h-full"
+                                  />
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-white font-bold text-sm truncate group-hover:text-[#FFBF00] transition-colors">
+                                    {video.title}
+                                  </p>
+                                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-0.5">
+                                    {video.category}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-gray-600 font-bold uppercase">No videos found</p>
+                        )}
+                      </div>
+
+                      {/* News Section */}
+                      <div className="space-y-4">
+                        <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-white/5 pb-2">
+                          Daily News Articles ({searchResults.news.length})
+                        </h4>
+                        {searchResults.news.length > 0 ? (
+                          <div className="space-y-3">
+                            {searchResults.news.map((item) => (
+                              <div
+                                key={item.id}
+                                className="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5 transition-all group"
+                              >
+                                <div className="relative w-20 aspect-video rounded-lg overflow-hidden flex-shrink-0">
+                                  <img
+                                    src={item.image}
+                                    alt={item.title}
+                                    className="object-cover w-full h-full"
+                                  />
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-white font-bold text-sm line-clamp-2">
+                                    {item.title}
+                                  </p>
+                                  <p className="text-[10px] text-[#FFBF00] font-bold uppercase tracking-wider mt-0.5">
+                                    {item.category}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-gray-600 font-bold uppercase">No articles found</p>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-16">
+                      <Search className="mx-auto text-white/10 mb-4 animate-pulse" size={48} />
+                      <p className="text-gray-500 text-xs font-black uppercase tracking-widest">
+                        Type to search matches, superstar rumors, & headlines
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </motion.div>
           )}
