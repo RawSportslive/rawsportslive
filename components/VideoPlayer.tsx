@@ -23,11 +23,17 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
   const [duration, setDuration] = useState(0);
   const [isEnded, setIsEnded] = useState(false);
   const [isPseudoLandscape, setIsPseudoLandscape] = useState(false);
+  const [hasError, setHasError] = useState(false);
   const playerRef = useRef<any>(null);
   
   const isYoutube = url.includes('youtube.com') || url.includes('youtu.be');
   const videoId = isYoutube ? (url.includes('v=') ? url.split('v=')[1]?.split('&')[0] : url.split('/').pop()) : null;
   const finalThumbnail = thumbnail || (isYoutube ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : '');
+
+  // Reset error when URL changes
+  useEffect(() => {
+    setHasError(false);
+  }, [url]);
 
   // Record History when video starts playing + save lastPosition every 10s
   useEffect(() => {
@@ -369,6 +375,10 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
             }}
             onReady={onReady}
             onStateChange={onStateChange}
+            onError={(e) => {
+              console.log("YouTube Playback Error, showing fallback:", e);
+              setHasError(true);
+            }}
             className="w-full h-full"
           />
           {/* Transparent blocker — prevents mobile touches from reaching YouTube's native UI */}
@@ -376,6 +386,27 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
         </div>
       ) : (
         <video src={url} className="w-full h-full object-cover" />
+      )}
+
+      {/* Fallback Overlay for Restricted Playbacks */}
+      {hasError && (
+        <div className="absolute inset-0 bg-black/95 flex flex-col items-center justify-center p-6 text-center z-[90]">
+          <div className="w-16 h-16 bg-[#ff0000]/10 rounded-full flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-[#ff0000] fill-current" viewBox="0 0 24 24"><path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.545 12 3.545 12 3.545s-7.518 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.87.508 9.388.508 9.388.508s7.518 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+          </div>
+          <h4 className="text-lg font-bold text-white uppercase tracking-tight mb-2">Embedding Restricted by YouTube</h4>
+          <p className="text-gray-400 text-[11px] font-medium max-w-xs mb-6 leading-relaxed">
+            This official video highlight requires playback directly on YouTube's secure site.
+          </p>
+          <a 
+            href={url} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="px-6 py-3 bg-[#ff0000] hover:bg-red-700 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 pointer-events-auto"
+          >
+            Watch on YouTube
+          </a>
+        </div>
       )}
 
       {/* Central Play/Pause Controller (Only at beginning) */}
@@ -534,15 +565,6 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
             </div>
 
             <div className="flex items-center gap-5">
-              <a 
-                href={url} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#ff0000] hover:bg-red-700 text-white font-bold text-[10px] uppercase tracking-wider transition-colors pointer-events-auto shadow-sm"
-              >
-                <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.545 12 3.545 12 3.545s-7.518 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.87.508 9.388.508 9.388.508s7.518 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                <span>Watch on YouTube</span>
-              </a>
               <button onClick={handleShare} className="text-gray-400 hover:text-white transition-colors">
                 <Share2 size={18} />
               </button>

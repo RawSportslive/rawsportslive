@@ -12,9 +12,9 @@ import {
   TextInput, 
   ScrollView,
   Image,
-  ActivityIndicator,
-  Linking
+  ActivityIndicator
 } from 'react-native';
+import { WebView } from 'react-native-webview';
 import { 
   collection, 
   query, 
@@ -43,6 +43,12 @@ export const VideoFeedScreen = () => {
   const [activeCategory, setActiveCategory] = useState('Latest');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
+  const [hasError, setHasError] = useState(false);
+
+  // Reset error state whenever a new video is loaded
+  useEffect(() => {
+    setHasError(false);
+  }, [selectedVideo]);
 
   // Auto rotate to landscape when a video is selected (fullscreen), and portrait when closed
   useEffect(() => {
@@ -329,13 +335,28 @@ export const VideoFeedScreen = () => {
         <View style={styles.modalContainer}>
           {selectedVideo && (
             <View style={styles.playerWrapper}>
-              <YoutubePlayer
-                height={width * 0.5625}
-                width={width}
-                play={true}
-                videoId={selectedVideo.videoId}
-                onChangeState={onStateChange}
-              />
+              {hasError ? (
+                <WebView
+                  style={{ height: width * 0.5625, width: width }}
+                  source={{ uri: `https://m.youtube.com/watch?v=${selectedVideo.videoId}` }}
+                  javaScriptEnabled={true}
+                  domStorageEnabled={true}
+                  allowsFullscreenVideo={true}
+                  mediaPlaybackRequiresUserAction={false}
+                />
+              ) : (
+                <YoutubePlayer
+                  height={width * 0.5625}
+                  width={width}
+                  play={true}
+                  videoId={selectedVideo.videoId}
+                  onChangeState={onStateChange}
+                  onError={(error) => {
+                    console.log("Youtube playback error, falling back to WebView:", error);
+                    setHasError(true);
+                  }}
+                />
+              )}
               <ScrollView style={styles.modalInfo}>
                 <Text style={styles.modalTitle}>{selectedVideo.title}</Text>
                 <View style={styles.metaRow}>
@@ -345,14 +366,6 @@ export const VideoFeedScreen = () => {
                     {new Date(selectedVideo.publishedAt).toLocaleDateString()}
                   </Text>
                 </View>
-                <TouchableOpacity
-                  style={styles.ytDeepLinkButton}
-                  onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${selectedVideo.videoId}`)}
-                  activeOpacity={0.8}
-                >
-                  <Play color="#ffffff" size={12} fill="#ffffff" />
-                  <Text style={styles.ytDeepLinkButtonText}>OPEN IN YOUTUBE APP</Text>
-                </TouchableOpacity>
                 <Text style={styles.modalDesc}>{selectedVideo.description}</Text>
               </ScrollView>
             </View>
