@@ -351,7 +351,7 @@ export const VideoFeedScreen = () => {
                   play={true}
                   videoId={selectedVideo.videoId}
                   onChangeState={onStateChange}
-                  onError={(error) => {
+                  onError={(error: any) => {
                     console.log("Youtube playback error, falling back to WebView:", error);
                     setHasError(true);
                   }}
