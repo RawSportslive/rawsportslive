@@ -80,7 +80,12 @@ export default function Home() {
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-4">
             <Menu className="text-white cursor-pointer hover:text-red-100" />
-            <img src="/logo.png" alt="RawSports Live" className="h-14 sm:h-16 md:h-18 object-contain" />
+            <img 
+              src="/logo.png" 
+              alt="RawSports Live" 
+              className="h-14 sm:h-16 md:h-18 object-contain" 
+              style={{ height: '56px', width: 'auto', objectFit: 'contain' }}
+            />
           </div>
           <div className="flex items-center gap-5">
             <Search size={20} className="text-white cursor-pointer hover:text-red-100" />

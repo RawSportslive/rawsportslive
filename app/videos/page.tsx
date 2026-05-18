@@ -154,7 +154,12 @@ export default function VideosPage() {
       />
       <header className="flex items-center justify-between py-2">
         <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="RawSports Live" className="h-12 w-12 object-contain rounded-xl" />
+          <img 
+            src="/logo.png" 
+            alt="RawSports Live" 
+            className="h-12 w-12 object-contain rounded-xl" 
+            style={{ height: '48px', width: '48px', objectFit: 'contain' }}
+          />
           <div>
             <h1 className="text-xl font-bold uppercase tracking-tight text-[#121212] leading-none">
               RAWSPORTS <span className="text-brand-red">LIVE</span>
