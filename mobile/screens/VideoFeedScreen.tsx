@@ -243,7 +243,7 @@ export const VideoFeedScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Title Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>RAWSPORTS LIVE</Text>
@@ -357,7 +357,7 @@ export const VideoFeedScreen = () => {
           )}
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
 

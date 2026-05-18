@@ -40,11 +40,15 @@ export default function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#ff0000' }}>
-        <View style={{ flex: 1, backgroundColor: '#050505' }}>
+      <View style={{ flex: 1, backgroundColor: '#050505' }}>
+        {/* iOS status bar background filler */}
+        {Platform.OS === 'ios' && (
+          <View style={{ height: 47, backgroundColor: '#ff0000', width: '100%' }} />
+        )}
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#050505' }}>
           <VideoFeedScreen />
-        </View>
-      </SafeAreaView>
+        </SafeAreaView>
+      </View>
       <StatusBar style="light" backgroundColor="#ff0000" translucent={false} />
     </QueryClientProvider>
   );

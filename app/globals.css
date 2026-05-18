@@ -24,6 +24,12 @@
   scrollbar-width: none;  /* Firefox */
 }
 
+html, body {
+  height: 100%;
+  overscroll-behavior: none !important;
+  overscroll-behavior-y: none !important;
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
@@ -36,7 +42,6 @@ body {
   /* Native touch feel */
   -webkit-tap-highlight-color: transparent;
   touch-action: pan-y;
-  overscroll-behavior-y: contain;
 }
 
 .no-scrollbar::-webkit-scrollbar {
