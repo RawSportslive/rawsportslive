@@ -473,8 +473,129 @@ export async function GET(
           }
         }
         
-        // Similar proxy fetches can be expanded for CricAPI, balldontlie, Ergast F1, etc.
-        // Fall back gracefully to mock data if specific endpoints are still being provisioned.
+        if (sport === 'cricket') {
+          let url = '';
+          if (type === 'live') url = `https://api.cricketdata.org/v1/currentMatches?apikey=${apiKey}`;
+          else if (type === 'fixtures') url = `https://api.cricketdata.org/v1/matches?apikey=${apiKey}`;
+
+          if (url) {
+            const res = await fetch(url, {
+              next: { revalidate: type === 'live' ? 30 : 7200 }
+            });
+            const rawData = await res.json();
+            if (rawData && rawData.data) {
+              if (type === 'live') {
+                const matches = rawData.data.map((item: any) => {
+                  const teams = item.teams || [];
+                  const scores = item.score || [];
+                  const scoreHome = scores[0] ? `${scores[0].r}/${scores[0].w} (${scores[0].o})` : 'Yet to Bat';
+                  const scoreAway = scores[1] ? `${scores[1].r}/${scores[1].w} (${scores[1].o})` : 'Yet to Bat';
+
+                  return {
+                    id: String(item.id),
+                    sport: 'cricket',
+                    league: item.series_id || 'Cricket Match',
+                    status: item.matchStarted ? 'live' : 'upcoming',
+                    timer: item.status || 'Live Scores',
+                    teamHome: {
+                      name: teams[0] || 'Team Home',
+                      logo: item.teamInfo?.[0]?.img || 'https://www.thesportsdb.com/images/media/team/badge/mumbai.png',
+                      score: scoreHome,
+                      detail: scores[0]?.inning || ''
+                    },
+                    teamAway: {
+                      name: teams[1] || 'Team Away',
+                      logo: item.teamInfo?.[1]?.img || 'https://www.thesportsdb.com/images/media/team/badge/chennai.png',
+                      score: scoreAway,
+                      detail: scores[1]?.inning || ''
+                    },
+                    venue: item.venue || 'Cricket Stadium',
+                    date: item.dateTimeGMT
+                  };
+                });
+                return NextResponse.json(matches);
+              } else if (type === 'fixtures') {
+                const fixtures = rawData.data.map((item: any) => ({
+                  id: String(item.id),
+                  sport: 'cricket',
+                  league: item.name || 'International Match',
+                  date: item.dateTimeGMT,
+                  teamHome: { name: item.teams?.[0] || 'Team A', logo: '' },
+                  teamAway: { name: item.teams?.[1] || 'Team B', logo: '' },
+                  venue: item.venue
+                }));
+                return NextResponse.json(fixtures);
+              }
+            }
+          }
+        }
+
+        if (sport === 'basketball') {
+          let url = '';
+          const today = new Date().toISOString().split('T')[0];
+          if (type === 'live') url = `https://api.balldontlie.io/v1/games?dates[]=${today}`;
+          else if (type === 'fixtures') url = `https://api.balldontlie.io/v1/games?seasons[]=2025`;
+
+          if (url) {
+            const res = await fetch(url, {
+              headers: {
+                'Authorization': apiKey
+              },
+              next: { revalidate: type === 'live' ? 30 : 7200 }
+            });
+            const rawData = await res.json();
+            if (rawData && rawData.data) {
+              if (type === 'live' || type === 'fixtures') {
+                const games = rawData.data.map((item: any) => ({
+                  id: String(item.id),
+                  sport: 'basketball',
+                  league: 'NBA',
+                  status: item.status === 'Final' ? 'finished' : (item.status.includes('Qtr') || item.status.includes('Halftime') ? 'live' : 'upcoming'),
+                  timer: item.time || item.status,
+                  teamHome: {
+                    name: item.home_team.full_name,
+                    logo: `https://www.thesportsdb.com/images/media/team/badge/trryqu1421415273.png`,
+                    score: String(item.home_team_score ?? '')
+                  },
+                  teamAway: {
+                    name: item.visitor_team.full_name,
+                    logo: `https://www.thesportsdb.com/images/media/team/badge/qvruyt1421413812.png`,
+                    score: String(item.visitor_team_score ?? '')
+                  },
+                  date: item.date
+                }));
+                return NextResponse.json(games);
+              }
+            }
+          }
+        }
+
+        if (sport === 'ufc') {
+          let url = '';
+          if (type === 'live' || type === 'fixtures') {
+            url = `https://www.thesportsdb.com/api/v1/json/${apiKey}/eventsnextleague.php?id=4443`;
+          }
+          if (url) {
+            const res = await fetch(url, {
+              next: { revalidate: 7200 }
+            });
+            const rawData = await res.json();
+            if (rawData && rawData.events) {
+              const fights = rawData.events.map((item: any) => ({
+                id: String(item.idEvent),
+                sport: 'ufc',
+                league: item.strEvent || 'UFC Fight Card',
+                status: 'upcoming',
+                timer: item.strTime || 'UFC Event',
+                teamHome: { name: item.strHomeTeam || 'Fighter A', logo: item.strHomeBadge || '' },
+                teamAway: { name: item.strAwayTeam || 'Fighter B', logo: item.strAwayBadge || '' },
+                venue: item.strVenue || 'Las Vegas Arena',
+                date: item.dateEvent
+              }));
+              return NextResponse.json(fights);
+            }
+          }
+        }
       } catch (err) {
         console.error(`External fetch failed for ${sport}/${type}, falling back to Mock Engine.`, err);
       }

@@ -8,9 +8,9 @@ import { motion } from 'motion/react';
 
 const navItems = [
   { icon: Home, label: 'Home', href: '/' },
+  { icon: Trophy, label: 'Sports', href: '/sports' },
   { icon: Play, label: 'Videos', href: '/videos' },
   { icon: Newspaper, label: 'News', href: '/news' },
-  { icon: Trophy, label: 'Arena', href: '/arena' },
   { icon: User, label: 'Profile', href: '/profile' },
 ];
 
