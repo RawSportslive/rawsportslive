@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { OFFICIAL_CHANNELS, LiveStream } from '../streams/route';
+import { OFFICIAL_CHANNELS, LiveStream } from '../shared';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Admin: Force-refresh all live stream caches

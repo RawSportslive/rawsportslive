@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { OFFICIAL_CHANNELS } from '../streams/route';
+import { OFFICIAL_CHANNELS } from '../shared';
 
 // Returns the full official channel registry to the mobile app
 // Used by the admin panel and channel browser feature
