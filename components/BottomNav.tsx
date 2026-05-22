@@ -3,12 +3,13 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Play, Newspaper, Trophy, User, Search } from 'lucide-react';
+import { Home, Play, Newspaper, Trophy, User, Radio } from 'lucide-react';
 import { motion } from 'motion/react';
 
 const navItems = [
   { icon: Home, label: 'Home', href: '/' },
   { icon: Trophy, label: 'Sports', href: '/sports' },
+  { icon: Radio, label: 'Live', href: '/live' },
   { icon: Play, label: 'Videos', href: '/videos' },
   { icon: Newspaper, label: 'News', href: '/news' },
   { icon: User, label: 'Profile', href: '/profile' },
