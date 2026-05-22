@@ -28,7 +28,7 @@ async function fetchUpcomingForChannel(
   url.searchParams.set('order', 'date');
   url.searchParams.set('key', apiKey);
 
-  const res = await fetch(url.toString(), { next: { revalidate: 0 } });
+  const res = await fetch(url.toString(), { next: { revalidate: 300 } });
   if (!res.ok) return [];
 
   const json = await res.json();

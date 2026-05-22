@@ -25,7 +25,7 @@ async function fetchLiveStreamsForChannel(
   url.searchParams.set('maxResults', '5');
   url.searchParams.set('key', apiKey);
 
-  const res = await fetch(url.toString(), { next: { revalidate: 0 } });
+  const res = await fetch(url.toString(), { next: { revalidate: 180 } });
   if (!res.ok) return [];
 
   const json = await res.json();
