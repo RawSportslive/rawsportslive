@@ -11,6 +11,7 @@ import VideoPlayer from '@/components/VideoPlayer';
 import VideoEngagement from '@/components/VideoEngagement';
 import { PlayCircle, Trophy, Search, Bell, Menu, Loader2, X, Shield, Home as HomeIcon, Newspaper, Calendar, Clock, Tv, Check } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const DEFAULT_LEGAL_TEXTS = {
   privacy: `RAWSPORTS LIVE - PRIVACY POLICY
@@ -90,16 +91,76 @@ export default function Home() {
 
   // Schedule Modal & Alert Toast states
   const [activeSchedulePost, setActiveSchedulePost] = useState<any | null>(null);
-  const [scheduledAlerts, setScheduledAlerts] = useState<string[]>([]);
+  const [upcomingSchedule, setUpcomingSchedule] = useState<any[]>([]);
+  const [loadingSchedule, setLoadingSchedule] = useState(false);
+  const [scheduledAlerts, setScheduledAlerts] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try { return JSON.parse(localStorage.getItem('rawsports_alerts') || '[]'); } catch { return []; }
+  });
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const toggleAlert = (showName: string) => {
-    if (scheduledAlerts.includes(showName)) {
-      setScheduledAlerts(prev => prev.filter(item => item !== showName));
-      setToastMessage(`🔔 Alert removed for ${showName}`);
-    } else {
-      setScheduledAlerts(prev => [...prev, showName]);
-      setToastMessage(`🔔 Ring Alert enabled! We will notify you 15 minutes before ${showName} launches!`);
+  // Persist alerts to localStorage whenever they change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('rawsports_alerts', JSON.stringify(scheduledAlerts));
+    }
+  }, [scheduledAlerts]);
+
+  useEffect(() => {
+    if (activeSchedulePost) {
+      setLoadingSchedule(true);
+      fetch('/api/live/upcoming?sport=all')
+        .then(res => res.json())
+        .then(data => {
+          setUpcomingSchedule(data.streams || []);
+          setLoadingSchedule(false);
+        })
+        .catch(() => setLoadingSchedule(false));
+    }
+  }, [activeSchedulePost]);
+
+  const toggleAlert = async (showName: string) => {
+    try {
+      const { requestNotificationPermission } = await import('@/lib/firebase');
+      const token = await requestNotificationPermission();
+
+      if (!token) {
+        // Still toggle the local UI even if push token isn't available
+        if (scheduledAlerts.includes(showName)) {
+          setScheduledAlerts(prev => prev.filter(item => item !== showName));
+          setToastMessage(`Alert removed for ${showName}`);
+        } else {
+          setScheduledAlerts(prev => [...prev, showName]);
+          setToastMessage(`Reminder set for ${showName}`);
+        }
+        return;
+      }
+
+      // Create safe topic name exactly like the backend cron job does
+      const topicName = showName.replace(/[^a-zA-Z0-9-_.~%]+/g, '_').substring(0, 50);
+
+      if (scheduledAlerts.includes(showName)) {
+        // Unsubscribe
+        await fetch('/api/alerts/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, topic: topicName, action: 'unsubscribe' })
+        });
+        setScheduledAlerts(prev => prev.filter(item => item !== showName));
+        setToastMessage(`Alert removed for ${showName}`);
+      } else {
+        // Subscribe
+        await fetch('/api/alerts/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, topic: topicName, action: 'subscribe' })
+        });
+        setScheduledAlerts(prev => [...prev, showName]);
+        setToastMessage(`Alert enabled for ${showName}`);
+      }
+    } catch (err) {
+      console.error('Alert toggle failed:', err);
+      setToastMessage('Failed to set alert. Please check your connection.');
     }
   };
 
@@ -326,9 +387,24 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-5">
             <Search size={20} className="cursor-pointer" color="#000" onClick={() => setShowSearch(true)} />
-            <div className="relative cursor-pointer group">
+            <div
+              className="relative cursor-pointer group"
+              onClick={async () => {
+                const { requestNotificationPermission } = await import('@/lib/firebase');
+                const token = await requestNotificationPermission();
+                if (token) {
+                  setToastMessage('Notifications enabled! You will be alerted before live matches.');
+                } else {
+                  setToastMessage('Please allow notifications in your browser to get match alerts.');
+                }
+              }}
+            >
               <Bell size={20} color="#000" />
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-black rounded-full border-2 border-white" />
+              {scheduledAlerts.length > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-600 rounded-full border border-white flex items-center justify-center text-[9px] font-bold text-white">
+                  {scheduledAlerts.length}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -464,9 +540,14 @@ export default function Home() {
                         {searchResults.news.length > 0 ? (
                           <div className="space-y-3">
                             {searchResults.news.map((item) => (
-                              <div
+                              <Link
+                                href="/news"
                                 key={item.id}
-                                className="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5 transition-all group"
+                                onClick={() => {
+                                  setShowSearch(false);
+                                  setSearchQuery('');
+                                }}
+                                className="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5 transition-all group cursor-pointer hover:bg-white/10"
                               >
                                 <div className="relative w-20 aspect-video rounded-lg overflow-hidden flex-shrink-0">
                                   <img
@@ -476,14 +557,14 @@ export default function Home() {
                                   />
                                 </div>
                                 <div className="min-w-0">
-                                  <p className="text-white font-bold text-sm line-clamp-2">
+                                  <p className="text-white font-bold text-sm line-clamp-2 group-hover:text-[#FFBF00] transition-colors">
                                     {item.title}
                                   </p>
                                   <p className="text-[10px] text-[#FFBF00] font-bold uppercase tracking-wider mt-0.5">
                                     {item.category}
                                   </p>
                                 </div>
-                              </div>
+                              </Link>
                             ))}
                           </div>
                         ) : (
@@ -510,7 +591,9 @@ export default function Home() {
           <SectionHeader title="Top Headlines" icon={PlayCircle} href="/news" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {news.map((item) => (
-              <NewsCard key={item.id} {...item} />
+              <Link href="/news" key={item.id}>
+                <NewsCard {...item} />
+              </Link>
             ))}
           </div>
         </section>
@@ -714,204 +797,109 @@ export default function Home() {
       <AnimatePresence>
         {toastMessage && (
           <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[300] bg-black/90 backdrop-blur-md border border-[#FFBF00]/30 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 max-w-sm text-center"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] px-5 py-3 rounded-lg shadow-xl flex items-center gap-2 max-w-sm pointer-events-none"
+            style={{ backgroundColor: '#1a1a1a' }}
           >
-            <span className="text-white text-xs font-black uppercase tracking-wider leading-relaxed" style={{ color: '#ffffff' }}>
+            <span className="text-sm font-medium" style={{ color: '#ffffff' }}>
               {toastMessage}
             </span>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* WWE Broadcast & PLE Schedule Modal */}
+      {/* Schedule Modal */}
       <AnimatePresence>
         {activeSchedulePost && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 md:p-8 overflow-y-auto no-scrollbar"
+            className="fixed inset-0 z-[200] bg-black/60 flex items-center justify-center p-4 overflow-y-auto"
+            onClick={() => setActiveSchedulePost(null)}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 30 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 30 }}
-              className="relative w-full max-w-2xl bg-[#121212] rounded-3xl overflow-hidden border border-white/10 shadow-2xl my-auto"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-lg rounded-xl overflow-hidden shadow-2xl my-auto border border-gray-800"
+              style={{ backgroundColor: '#FAF7F2' }}
+              onClick={e => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="p-6 border-b border-white/5 flex items-center justify-between bg-black/40">
-                <div className="flex items-center gap-3">
-                  <Calendar size={20} className="text-[#FFBF00]" />
-                  <h3 className="font-bold text-base uppercase tracking-tight" style={{ color: '#ffffff' }}>
-                    WWE Arena Broadcast Schedule
-                  </h3>
-                </div>
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-300" style={{ backgroundColor: '#F5F0E8' }}>
+                <h3 className="text-base font-semibold text-gray-900">📅 Upcoming Schedule</h3>
                 <button
                   onClick={() => setActiveSchedulePost(null)}
-                  className="p-2.5 rounded-xl bg-white/5 text-white hover:bg-brand-red transition-all"
-                  style={{ color: '#ffffff' }}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 transition-colors text-gray-700"
                 >
-                  <X size={18} style={{ color: '#ffffff' }} />
+                  <X size={16} />
                 </button>
               </div>
 
               {/* Body */}
-              <div className="p-6 md:p-8 max-h-[65vh] overflow-y-auto custom-scrollbar space-y-8">
-                
-                {/* Spotlight Tag */}
-                <div className="bg-[#FFBF00]/10 border border-[#FFBF00]/20 rounded-2xl p-4 flex items-center justify-between gap-4">
-                  <div>
-                    <span className="text-[9px] font-black uppercase text-[#FFBF00] tracking-widest bg-[#FFBF00]/10 px-2.5 py-1 rounded-md">Spotlight Event</span>
-                    <h4 className="text-sm md:text-base font-black text-white uppercase mt-1" style={{ color: '#ffffff' }}>
-                      {activeSchedulePost.title}
-                    </h4>
-                    <p className="text-gray-400 text-xs mt-0.5" style={{ color: '#888888' }}>
-                      Featured slide segment alert is active. Click remind to get alerted!
-                    </p>
+              <div className="divide-y divide-gray-200 max-h-[60vh] overflow-y-auto">
+                {loadingSchedule ? (
+                  <div className="flex items-center justify-center py-12 gap-3">
+                    <Loader2 className="animate-spin text-gray-400" size={20} />
+                    <span className="text-sm text-gray-500">Loading schedule...</span>
                   </div>
-                  <button
-                    onClick={() => toggleAlert(activeSchedulePost.title)}
-                    className={`px-4 py-2.5 rounded-xl font-bold uppercase text-[9px] tracking-wider transition-all flex items-center gap-1.5 shrink-0 ${
-                      scheduledAlerts.includes(activeSchedulePost.title)
-                        ? 'bg-[#4ade80] text-black hover:bg-[#22c55e]'
-                        : 'bg-[#FFBF00] text-black hover:bg-amber-500'
-                    }`}
-                  >
-                    {scheduledAlerts.includes(activeSchedulePost.title) ? (
-                      <>
-                        <Check size={12} />
-                        <span>Scheduled</span>
-                      </>
-                    ) : (
-                      <>
-                        <Bell size={12} />
-                        <span>Remind Me</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {/* Weekly Broadcasts */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 border-b border-white/5 pb-2">
-                    <Tv size={16} className="text-[#FFBF00]" />
-                    <h5 className="text-xs font-black uppercase tracking-widest text-[#FFBF00]">Weekly Live Broadcasts</h5>
+                ) : upcomingSchedule.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-sm text-gray-500">No upcoming broadcasts right now.</p>
                   </div>
-                  <div className="space-y-3">
-                    {[
-                      { day: 'Mondays', show: 'WWE Monday Night RAW', time: '8:00 PM ET', network: 'USA Network' },
-                      { day: 'Tuesdays', show: 'WWE NXT', time: '8:00 PM ET', network: 'CW Network' },
-                      { day: 'Fridays', show: 'WWE Friday Night SmackDown', time: '8:00 PM ET', network: 'USA Network' }
-                    ].map((item, idx) => (
-                      <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[9px] font-black uppercase tracking-wider text-[#FFBF00] bg-[#FFBF00]/10 px-2 py-0.5 rounded">
-                              {item.day}
-                            </span>
-                            <span className="text-xs font-bold text-white uppercase" style={{ color: '#ffffff' }}>
-                              {item.network}
-                            </span>
-                          </div>
-                          <h6 className="text-sm font-black text-white uppercase tracking-tight" style={{ color: '#ffffff' }}>
-                            {item.show}
-                          </h6>
-                          <div className="flex items-center gap-1.5 text-gray-400 text-xs" style={{ color: '#888888' }}>
-                            <Clock size={12} />
-                            <span>{item.time}</span>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => toggleAlert(item.show)}
-                          className={`sm:self-center px-4 py-2.5 rounded-xl font-bold uppercase text-[9px] tracking-wider transition-all flex items-center justify-center gap-1.5 ${
-                            scheduledAlerts.includes(item.show)
-                              ? 'bg-[#4ade80] text-black hover:bg-[#22c55e]'
-                              : 'bg-white/10 text-white hover:bg-white/20'
-                          }`}
-                          style={{ color: scheduledAlerts.includes(item.show) ? '#000000' : '#ffffff' }}
-                        >
-                          {scheduledAlerts.includes(item.show) ? (
-                            <>
-                              <Check size={12} style={{ color: '#000000' }} />
-                              <span>Scheduled</span>
-                            </>
-                          ) : (
-                            <>
-                              <Bell size={12} style={{ color: '#ffffff' }} />
-                              <span>Remind Me</span>
-                            </>
-                          )}
-                        </button>
+                ) : (
+                  upcomingSchedule.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between gap-3 px-5 py-4 hover:bg-amber-50 transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-gray-500 mb-0.5">
+                          {new Date(item.scheduledStartTime).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} · {new Date(item.scheduledStartTime).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })} · {item.channelName}
+                        </p>
+                        <p className="text-sm font-semibold text-gray-900 leading-snug">{item.title}</p>
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Premium Live Events */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 border-b border-white/5 pb-2">
-                    <Trophy size={16} className="text-[#FFBF00]" />
-                    <h5 className="text-xs font-black uppercase tracking-widest text-[#FFBF00]">Upcoming Premium Live Events</h5>
-                  </div>
-                  <div className="space-y-3">
-                    {[
-                      { date: 'Saturday, Aug 1', event: 'WWE SummerSlam 2026', location: 'Cleveland, OH' },
-                      { date: 'Saturday, Nov 28', event: 'WWE Survivor Series 2026', location: 'Boston, MA' },
-                      { date: 'Saturday, Jan 24', event: 'WWE Royal Rumble 2027', location: 'San Antonio, TX' },
-                      { date: 'Sat & Sun, Apr 3-4', event: 'WWE WrestleMania 43', location: 'Las Vegas, NV' }
-                    ].map((item, idx) => (
-                      <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[9px] font-black uppercase tracking-wider text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded">
-                              {item.date}
-                            </span>
-                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight" style={{ color: '#888888' }}>
-                              {item.location}
-                            </span>
-                          </div>
-                          <h6 className="text-sm font-black text-white uppercase tracking-tight" style={{ color: '#ffffff' }}>
-                            {item.event}
-                          </h6>
-                        </div>
-                        <button
-                          onClick={() => toggleAlert(item.event)}
-                          className={`sm:self-center px-4 py-2.5 rounded-xl font-bold uppercase text-[9px] tracking-wider transition-all flex items-center justify-center gap-1.5 ${
-                            scheduledAlerts.includes(item.event)
-                              ? 'bg-[#4ade80] text-black hover:bg-[#22c55e]'
-                              : 'bg-white/10 text-white hover:bg-white/20'
-                          }`}
-                          style={{ color: scheduledAlerts.includes(item.event) ? '#000000' : '#ffffff' }}
-                        >
-                          {scheduledAlerts.includes(item.event) ? (
-                            <>
-                              <Check size={12} style={{ color: '#000000' }} />
-                              <span>Scheduled</span>
-                            </>
-                          ) : (
-                            <>
-                              <Bell size={12} style={{ color: '#ffffff' }} />
-                              <span>Remind Me</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
+                      <button
+                        onClick={() => toggleAlert(item.title)}
+                        className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${
+                          scheduledAlerts.includes(item.title)
+                            ? 'bg-green-100 text-green-800 border-green-300'
+                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {scheduledAlerts.includes(item.title) ? (
+                          <><Check size={12} />Scheduled</>
+                        ) : (
+                          <><Bell size={12} />Remind me</>
+                        )}
+                      </button>
+                    </div>
+                  ))
+                )}
               </div>
 
               {/* Footer */}
-              <div className="p-6 bg-black/40 border-t border-white/5 flex justify-end">
+              <div className="px-5 py-4 border-t border-gray-300 flex items-center justify-between" style={{ backgroundColor: '#F5F0E8' }}>
+                <button
+                  onClick={async () => {
+                    for (const item of upcomingSchedule) {
+                      if (!scheduledAlerts.includes(item.title)) {
+                        await toggleAlert(item.title);
+                      }
+                    }
+                  }}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium border border-gray-400 bg-white hover:bg-gray-50 transition-colors"
+                  style={{ color: '#374151' }}
+                >
+                  <Bell size={12} style={{ color: '#374151' }} />
+                  Remind All
+                </button>
                 <button
                   onClick={() => setActiveSchedulePost(null)}
-                  className="px-6 py-3 rounded-xl bg-[#FFBF00] hover:bg-amber-500 text-black font-bold uppercase text-[10px] tracking-wider transition-all"
+                  className="px-5 py-2 rounded-md text-sm font-semibold transition-colors"
+                  style={{ backgroundColor: '#1a1a1a', color: '#ffffff' }}
                 >
-                  Done
+                  Close
                 </button>
               </div>
             </motion.div>

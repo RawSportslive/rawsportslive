@@ -86,10 +86,17 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   return (
     <AuthProvider>
       {showSplash && (
-        <div className="fixed inset-0 z-[10000] bg-[#FFBF00] flex items-center justify-center">
-          <h1 className="text-black text-4xl md:text-6xl font-black italic tracking-tighter">
-            RAW<span className="text-white">SPORTS</span> <span className="text-[#ff0000] text-xl md:text-3xl align-top ml-1 not-italic font-black">LIVE</span>
-          </h1>
+        <div className="fixed inset-0 z-[10000] bg-[#0a0a0a] flex items-center justify-center transition-all duration-500">
+          <div className="flex flex-col items-center animate-pulse">
+            <h1 className="text-white text-5xl md:text-7xl font-black italic tracking-tighter drop-shadow-2xl flex items-center">
+              RAW<span className="text-[#E50914]">SPORTS</span>
+              <span className="bg-[#E50914] text-white text-sm md:text-lg not-italic font-black px-2 py-0.5 ml-2 rounded-md tracking-wider">LIVE</span>
+            </h1>
+            <div className="mt-8 flex items-center gap-3 opacity-80">
+              <div className="w-2 h-2 rounded-full bg-[#E50914] animate-ping" />
+              <span className="text-gray-400 text-xs font-bold tracking-[0.3em] uppercase">Loading Official Streams</span>
+            </div>
+          </div>
         </div>
       )}
 

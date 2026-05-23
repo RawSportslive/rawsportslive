@@ -9,7 +9,7 @@ interface CacheEntry {
   timestamp: number;
 }
 let upcomingCache: CacheEntry | null = null;
-const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
 const ALL_CHANNELS = Object.values(OFFICIAL_CHANNELS).flat();
 
@@ -17,22 +17,29 @@ async function fetchUpcomingForChannel(
   channelId: string,
   channelName: string,
   sport: string,
-  apiKey: string
+  apiKeys: string[]
 ): Promise<LiveStream[]> {
-  const url = new URL('https://www.googleapis.com/youtube/v3/search');
-  url.searchParams.set('part', 'snippet');
-  url.searchParams.set('channelId', channelId);
-  url.searchParams.set('eventType', 'upcoming');
-  url.searchParams.set('type', 'video');
-  url.searchParams.set('maxResults', '3');
-  url.searchParams.set('order', 'date');
-  url.searchParams.set('key', apiKey);
+  for (let i = 0; i < apiKeys.length; i++) {
+    const apiKey = apiKeys[i];
+    const url = new URL('https://www.googleapis.com/youtube/v3/search');
+    url.searchParams.set('part', 'snippet');
+    url.searchParams.set('channelId', channelId);
+    url.searchParams.set('eventType', 'upcoming');
+    url.searchParams.set('type', 'video');
+    url.searchParams.set('maxResults', '3');
+    url.searchParams.set('order', 'date');
+    url.searchParams.set('key', apiKey);
 
-  const res = await fetch(url.toString(), { next: { revalidate: 300 } });
-  if (!res.ok) return [];
+    const res = await fetch(url.toString(), { next: { revalidate: 900 } });
+    if (!res.ok) {
+      if (i === apiKeys.length - 1) {
+        throw new Error('YOUTUBE_QUOTA_EXCEEDED');
+      }
+      continue;
+    }
 
-  const json = await res.json();
-  const items = json.items ?? [];
+    const json = await res.json();
+    const items = json.items ?? [];
 
   // Fetch video details (including scheduledStartTime) for upcoming videos
   const videoIds = items.map((item: any) => item.id?.videoId).filter(Boolean).join(',');
@@ -69,6 +76,8 @@ async function fetchUpcomingForChannel(
       embedUrl: `https://www.youtube.com/embed/${videoId}`,
     };
   }).filter((s: LiveStream) => s.videoId);
+  }
+  return [];
 }
 
 export async function GET(request: Request) {
@@ -77,10 +86,11 @@ export async function GET(request: Request) {
     const sport = searchParams.get('sport') || 'all';
     const forceRefresh = searchParams.get('refresh') === '1';
 
-    const apiKey = process.env.YOUTUBE_API_KEY;
-    if (!apiKey) {
+    const apiKeyRaw = process.env.YOUTUBE_API_KEYS || process.env.YOUTUBE_API_KEY;
+    if (!apiKeyRaw) {
       return NextResponse.json({ error: 'YouTube API key not configured' }, { status: 500 });
     }
+    const apiKeys = apiKeyRaw.split(',').map(k => k.trim()).filter(Boolean);
 
     if (!forceRefresh && upcomingCache && Date.now() - upcomingCache.timestamp < CACHE_TTL_MS) {
       const filtered = sport === 'all'
@@ -99,13 +109,20 @@ export async function GET(request: Request) {
 
     const results = await Promise.allSettled(
       channelsToQuery.map((ch) =>
-        fetchUpcomingForChannel(ch.id, ch.name, ch.sport, apiKey)
+        fetchUpcomingForChannel(ch.id, ch.name, ch.sport, apiKeys)
       )
     );
 
-    const streams: LiveStream[] = results
-      .filter((r): r is PromiseFulfilledResult<LiveStream[]> => r.status === 'fulfilled')
-      .flatMap((r) => r.value)
+    const streams: LiveStream[] = [];
+    for (const r of results) {
+      if (r.status === 'fulfilled') {
+        streams.push(...r.value);
+      } else if (r.reason && r.reason.message === 'YOUTUBE_QUOTA_EXCEEDED') {
+        return NextResponse.json({ error: 'YouTube API Quota Exceeded. Please update your API key.' }, { status: 429 });
+      }
+    }
+
+    const validStreams = streams
       .filter((s) => s.videoId)
       // Sort by scheduled start time ascending
       .sort((a, b) => {
@@ -115,11 +132,11 @@ export async function GET(request: Request) {
       });
 
     if (sport === 'all') {
-      upcomingCache = { data: streams, timestamp: Date.now() };
+      upcomingCache = { data: validStreams, timestamp: Date.now() };
     }
 
     return NextResponse.json({
-      streams,
+      streams: validStreams,
       cached: false,
       fetchedAt: new Date().toISOString(),
     });

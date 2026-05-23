@@ -27,4 +27,7 @@ function getAdminApp(): App {
   });
 }
 
+import { getMessaging } from 'firebase-admin/messaging';
+
 export const adminDb = getFirestore(getAdminApp());
+export const adminMessaging = getMessaging(getAdminApp());

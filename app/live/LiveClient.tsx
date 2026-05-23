@@ -52,60 +52,7 @@ const SPORT_ICONS: Record<string, string> = {
   esports: '🎮',
 };
 
-const ALWAYS_ON_STREAMS: LiveStream[] = [
-  {
-    videoId: 'w-rX2D8O_o0', 
-    title: 'WWE 24/7 Network Vault: Greatest Matches & Moments',
-    channelId: 'wwe',
-    channelName: 'WWE Official',
-    sport: 'wrestling',
-    thumbnail: 'https://images.unsplash.com/photo-1574187063463-c75c8a0026db?auto=format&fit=crop&q=80&w=800',
-    status: 'live',
-    description: 'Relive the greatest moments in WWE history with our 24/7 vault stream!',
-    publishedAt: new Date().toISOString(),
-    sourceLabel: 'Official WWE Network',
-    embedUrl: ''
-  },
-  {
-    videoId: 'M7lc1UVf-VE',
-    title: 'Sky Sports News 24/7 Live Coverage & Analysis',
-    channelId: 'sky',
-    channelName: 'Sky Sports',
-    sport: 'football',
-    thumbnail: 'https://images.unsplash.com/photo-1518605368461-1ee11b68144b?auto=format&fit=crop&q=80&w=800',
-    status: 'live',
-    description: 'Breaking sports news, analysis and exclusive interviews streaming around the clock.',
-    publishedAt: new Date().toISOString(),
-    sourceLabel: 'Official Broadcaster',
-    embedUrl: ''
-  },
-  {
-    videoId: 'I11vQ7x0wD4', 
-    title: 'UFC Full Free Fights 24/7 Marathon',
-    channelId: 'ufc',
-    channelName: 'UFC',
-    sport: 'ufc',
-    thumbnail: 'https://images.unsplash.com/photo-1555597673-b21d5c935865?auto=format&fit=crop&q=80&w=800',
-    status: 'live',
-    description: 'The best knockouts, submissions, and full free fights streaming 24/7.',
-    publishedAt: new Date().toISOString(),
-    sourceLabel: 'Official UFC',
-    embedUrl: ''
-  },
-  {
-    videoId: 'Z1BCujX3pw8',
-    title: 'ICC Cricket Classics: Greatest World Cup Matches',
-    channelId: 'icc',
-    channelName: 'ICC',
-    sport: 'cricket',
-    thumbnail: 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&q=80&w=800',
-    status: 'live',
-    description: 'Streaming classic cricket matches from the World Cup vault 24/7.',
-    publishedAt: new Date().toISOString(),
-    sourceLabel: 'Official ICC',
-    embedUrl: ''
-  }
-];
+
 
 export default function LiveClient({ 
   initialLiveStreams, 
@@ -120,18 +67,24 @@ export default function LiveClient({
   const [upcomingStreams, setUpcomingStreams] = useState<LiveStream[]>(initialUpcomingStreams);
   const [isRefetching, setIsRefetching] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<LiveStream | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const fetchLiveHubData = async () => {
     setIsRefetching(true);
+    setApiError(null);
     try {
       const [liveRes, upcomingRes] = await Promise.all([
-        fetch(`/api/live/streams?sport=all&refresh=1`),
-        fetch(`/api/live/upcoming?sport=all&refresh=1`)
+        fetch(`/api/live/streams?sport=all`),
+        fetch(`/api/live/upcoming?sport=all`)
       ]);
       
       const liveData = await liveRes.json();
       const upcomingData = await upcomingRes.json();
       
+      if (liveRes.status === 429 || upcomingRes.status === 429) {
+        setApiError('YouTube API Quota Exceeded. Please update your API key in .env.local');
+      }
+
       setLiveStreams(liveData.streams || []);
       setUpcomingStreams(upcomingData.streams || []);
     } catch (err) {
@@ -142,12 +95,13 @@ export default function LiveClient({
   };
 
   useEffect(() => {
-    const interval = setInterval(() => fetchLiveHubData(), 3 * 60 * 1000); 
+    // Fetch immediately on mount so users see fresh data right away
+    fetchLiveHubData();
+    const interval = setInterval(() => fetchLiveHubData(), 15 * 60 * 1000); 
     return () => clearInterval(interval);
   }, []);
 
-  // Merge always-on streams so it's NEVER empty!
-  const combinedLiveStreams = [...liveStreams, ...ALWAYS_ON_STREAMS];
+  const combinedLiveStreams = liveStreams;
 
   const filteredLive = combinedLiveStreams.filter(s => {
     if (activeSport !== 'all' && s.sport !== activeSport) return false;
@@ -183,11 +137,22 @@ export default function LiveClient({
         <button 
           onClick={fetchLiveHubData}
           disabled={isRefetching}
-          className="w-10 h-10 rounded-full bg-white/5 border border-white/10 shadow-sm flex items-center justify-center hover:bg-white/10 transition-colors disabled:opacity-50"
+          className="w-10 h-10 rounded-full bg-white/5 border border-white/10 shadow-sm flex items-center justify-center hover:bg-white/10 transition-colors disabled:opacity-50 shrink-0"
         >
           <RefreshCw size={18} className={`${isRefetching ? 'animate-spin text-[#E50914]' : 'text-gray-400'}`} />
         </button>
       </div>
+
+      {apiError && (
+        <div className="w-full px-4 sm:px-6 lg:px-8 mb-6">
+          <div className="bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl p-4 flex items-center justify-between text-sm font-bold shadow-sm">
+            <span>⚠️ {apiError}</span>
+            <button onClick={() => setApiError(null)} className="opacity-70 hover:opacity-100">
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Filters and Search - Full width */}
       <div className="w-full px-4 sm:px-6 lg:px-8 mb-10">

@@ -9,27 +9,34 @@ interface CacheEntry {
   timestamp: number;
 }
 let cache: CacheEntry | null = null;
-const CACHE_TTL_MS = 3 * 60 * 1000; // 3 minutes
+const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
 async function fetchLiveStreamsForChannel(
   channelId: string,
   channelName: string,
   sport: string,
-  apiKey: string
+  apiKeys: string[]
 ): Promise<LiveStream[]> {
-  const url = new URL('https://www.googleapis.com/youtube/v3/search');
-  url.searchParams.set('part', 'snippet');
-  url.searchParams.set('channelId', channelId);
-  url.searchParams.set('eventType', 'live');
-  url.searchParams.set('type', 'video');
-  url.searchParams.set('maxResults', '5');
-  url.searchParams.set('key', apiKey);
+  for (let i = 0; i < apiKeys.length; i++) {
+    const apiKey = apiKeys[i];
+    const url = new URL('https://www.googleapis.com/youtube/v3/search');
+    url.searchParams.set('part', 'snippet');
+    url.searchParams.set('channelId', channelId);
+    url.searchParams.set('eventType', 'live');
+    url.searchParams.set('type', 'video');
+    url.searchParams.set('maxResults', '5');
+    url.searchParams.set('key', apiKey);
 
-  const res = await fetch(url.toString(), { next: { revalidate: 180 } });
-  if (!res.ok) return [];
+    const res = await fetch(url.toString(), { next: { revalidate: 900 } });
+    if (!res.ok) {
+      if (i === apiKeys.length - 1) {
+        throw new Error('YOUTUBE_QUOTA_EXCEEDED');
+      }
+      continue;
+    }
 
-  const json = await res.json();
-  const items = json.items ?? [];
+    const json = await res.json();
+    const items = json.items ?? [];
 
   return items.map((item: any) => {
     const videoId = item.id?.videoId ?? '';
@@ -52,6 +59,8 @@ async function fetchLiveStreamsForChannel(
       embedUrl: `https://www.youtube.com/embed/${videoId}?autoplay=1`,
     };
   });
+  }
+  return [];
 }
 
 export async function GET(request: Request) {
@@ -60,10 +69,11 @@ export async function GET(request: Request) {
     const sport = searchParams.get('sport') || 'all';
     const forceRefresh = searchParams.get('refresh') === '1';
 
-    const apiKey = process.env.YOUTUBE_API_KEY;
-    if (!apiKey) {
+    const apiKeyRaw = process.env.YOUTUBE_API_KEYS || process.env.YOUTUBE_API_KEY;
+    if (!apiKeyRaw) {
       return NextResponse.json({ error: 'YouTube API key not configured' }, { status: 500 });
     }
+    const apiKeys = apiKeyRaw.split(',').map(k => k.trim()).filter(Boolean);
 
     // Return cached data if still fresh
     if (!forceRefresh && cache && Date.now() - cache.timestamp < CACHE_TTL_MS) {
@@ -83,14 +93,20 @@ export async function GET(request: Request) {
 
     const results = await Promise.allSettled(
       channelsToQuery.map((ch) =>
-        fetchLiveStreamsForChannel(ch.id, ch.name, ch.sport, apiKey)
+        fetchLiveStreamsForChannel(ch.id, ch.name, ch.sport, apiKeys)
       )
     );
 
-    const streams: LiveStream[] = results
-      .filter((r): r is PromiseFulfilledResult<LiveStream[]> => r.status === 'fulfilled')
-      .flatMap((r) => r.value)
-      .filter((s) => s.videoId);
+    const streams: LiveStream[] = [];
+    for (const r of results) {
+      if (r.status === 'fulfilled') {
+        streams.push(...r.value);
+      } else if (r.reason && r.reason.message === 'YOUTUBE_QUOTA_EXCEEDED') {
+        return NextResponse.json({ error: 'YouTube API Quota Exceeded. Please update your API key.' }, { status: 429 });
+      }
+    }
+    
+    const validStreams = streams.filter((s) => s.videoId);
 
     // Update cache (cache all sports together)
     if (sport === 'all') {
@@ -98,10 +114,10 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({
-      streams,
+      streams: validStreams,
       cached: false,
       fetchedAt: new Date().toISOString(),
-      totalLive: streams.length,
+      totalLive: validStreams.length,
     });
   } catch (error) {
     console.error('[live/streams] Error:', error);
