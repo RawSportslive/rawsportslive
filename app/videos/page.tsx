@@ -194,8 +194,8 @@ export default function VideosPage() {
       </div>
 
       {videos.length === 0 && loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map((n) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
             <div key={n} className="animate-pulse space-y-4">
               <div className="aspect-video bg-gray-200 rounded-2xl" />
               <div className="space-y-2 mt-4">
@@ -206,7 +206,7 @@ export default function VideosPage() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <AnimatePresence mode="popLayout">
             {filteredVideos.map((video) => (
               <motion.div
@@ -220,7 +220,7 @@ export default function VideosPage() {
                   setStartAt(vidId && historyPositions[vidId] ? historyPositions[vidId] : 0);
                   setSelectedVideo(video);
                 }}
-                className="group cursor-pointer bg-white border border-gray-200/80 rounded-2xl overflow-hidden p-3 shadow-sm hover:shadow-md transition-all"
+                className="group cursor-pointer transition-all"
               >
                 <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-100">
                   <Image 

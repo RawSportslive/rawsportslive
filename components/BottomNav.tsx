@@ -33,13 +33,6 @@ export default function BottomNav() {
               <span className={`text-[9px] uppercase tracking-widest font-black mt-1.5 ${isActive ? 'text-brand-red' : 'text-gray-600'}`}>
                 {item.label}
               </span>
-              {isActive && (
-                <motion.div
-                  layoutId="active-indicator"
-                  className="absolute -bottom-4 w-12 h-1 bg-brand-red rounded-t-full shadow-[0_0_15px_rgba(239,68,68,0.5)]"
-                  transition={{ type: 'spring', bounce: 0, duration: 0.2 }}
-                />
-              )}
             </Link>
           );
         })}

@@ -183,31 +183,7 @@ export default function Home() {
       setLoading(false);
     });
 
-    // 3. Auto sync daily news from premium public Sky Sports RSS WWE feed
-    const autoSyncNews = async () => {
-      try {
-        const response = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://www.skysports.com/rss/12040');
-        const data = await response.json();
-        if (data.status === 'ok' && Array.isArray(data.items)) {
-          const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
-          for (const item of data.items.slice(0, 6)) {
-            const newsId = item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            const img = item.thumbnail || item.enclosure?.link || `https://picsum.photos/seed/${newsId}/800/600`;
-            await setDoc(doc(db, 'news', newsId), {
-              title: item.title,
-              excerpt: item.description || 'Catch the latest updates, highlights and roster standings on RawSports Live.',
-              content: item.content || item.description || '',
-              category: 'WWE News',
-              image: img,
-              author: item.author || 'Sky Sports WWE',
-              createdAt: serverTimestamp()
-            }, { merge: true });
-          }
-        }
-      } catch (err) {
-        console.error("Daily news auto sync failed:", err);
-      }
-    };
+    // 3. (Removed frontend auto-sync to allow backend scraper to fetch full content)
 
     // 4. Initialize dynamic legal policies if they do not exist
     const initializeLegal = async () => {
@@ -235,7 +211,6 @@ export default function Home() {
       }
     };
 
-    autoSyncNews();
     initializeLegal();
 
     return () => {

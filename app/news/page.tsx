@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Image from 'next/image';
-import { Search, Loader2, X, Calendar, User, Clock, Newspaper } from 'lucide-react';
+import { Search, Loader2, X, Calendar, User, Clock, Newspaper, Share2, Bookmark, Eye } from 'lucide-react';
 import { db } from '@/lib/firebase';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, increment } from 'firebase/firestore';
 
-const newsCategories = ["All", "RAW", "SmackDown", "Rumors", "NXT", "Events"];
+const newsCategories = ["All", "Saved", "RAW", "SmackDown", "Rumors", "NXT", "Events", "WWE News", "Nepal"];
 
 interface NewsArticle {
   id: string;
@@ -17,7 +17,9 @@ interface NewsArticle {
   content: string;
   image: string;
   author: string;
+  link?: string;
   createdAt?: any;
+  views?: number;
 }
 
 export default function NewsPage() {
@@ -25,6 +27,40 @@ export default function NewsPage() {
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('rawsports_saved_articles');
+    if (saved) {
+      try { setBookmarkedIds(JSON.parse(saved)); } catch (e) {}
+    }
+  }, []);
+
+  const toggleBookmark = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const newBookmarks = bookmarkedIds.includes(id) 
+      ? bookmarkedIds.filter(b => b !== id) 
+      : [...bookmarkedIds, id];
+    setBookmarkedIds(newBookmarks);
+    localStorage.setItem('rawsports_saved_articles', JSON.stringify(newBookmarks));
+  };
+
+  const calculateReadingTime = (text: string) => {
+    const words = text ? text.split(/\s+/).length : 0;
+    return Math.max(1, Math.ceil(words / 200));
+  };
+
+  useEffect(() => {
+    if (selectedArticle) {
+      const viewedKey = `rawsports_viewed_${selectedArticle.id}`;
+      if (!sessionStorage.getItem(viewedKey)) {
+        sessionStorage.setItem(viewedKey, 'true');
+        const articleRef = doc(db, 'news', selectedArticle.id);
+        updateDoc(articleRef, { views: increment(1) }).catch(err => console.error("Error updating views:", err));
+      }
+    }
+  }, [selectedArticle]);
 
   useEffect(() => {
     const q = query(collection(db, 'news'), orderBy('createdAt', 'desc'));
@@ -43,9 +79,13 @@ export default function NewsPage() {
     return () => unsubscribe();
   }, []);
 
-  const filteredArticles = activeCategory === "All" 
-    ? articles 
-    : articles.filter(a => a.category === activeCategory);
+  const filteredArticles = articles.filter(a => {
+    const matchesCategory = activeCategory === "All" || (activeCategory === "Saved" ? bookmarkedIds.includes(a.id) : a.category === activeCategory);
+    const matchesSearch = searchQuery === "" || 
+      a.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      a.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   const newsSchema = {
     "@context": "https://schema.org",
@@ -95,7 +135,9 @@ export default function NewsPage() {
           <Search size={20} className="text-gray-500" />
           <input 
             placeholder="Search news, rumors..." 
-            className="bg-transparent border-none focus:ring-0 text-sm font-medium w-full ml-3 placeholder:text-gray-600 text-white"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="bg-transparent border-none focus:ring-0 text-sm font-medium w-full ml-3 placeholder:text-gray-600 text-white outline-none"
           />
         </div>
         <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
@@ -116,8 +158,8 @@ export default function NewsPage() {
       </div>
 
       {articles.length === 0 && loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[1, 2, 3].map((n) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          {[1, 2, 3, 4, 5].map((n) => (
             <div key={n} className="animate-pulse space-y-4 bg-white/5 rounded-2xl p-5 border border-white/5">
               <div className="aspect-[16/10] bg-white/10 rounded-xl" />
               <div className="space-y-3 mt-4">
@@ -129,7 +171,7 @@ export default function NewsPage() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           <AnimatePresence mode="popLayout">
             {filteredArticles.map((article) => (
               <motion.div 
@@ -141,14 +183,16 @@ export default function NewsPage() {
                 onClick={() => setSelectedArticle(article)}
                 className="group cursor-pointer bg-white/5 rounded-2xl overflow-hidden border border-white/5 hover:border-brand-red/30 transition-all"
               >
-                <div className="relative aspect-[16/10] overflow-hidden">
-                  <Image 
-                    src={article.image} 
+                <div className="relative aspect-[16/10] overflow-hidden bg-white/5 flex items-center justify-center">
+                  <img 
+                    src={article.image || '/logo.png'} 
                     alt={article.title} 
-                    fill 
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    referrerPolicy="no-referrer"
-                    unoptimized={true}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    onError={(e) => {
+                      e.currentTarget.src = '/logo.png';
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.className = "w-32 h-32 object-contain opacity-20";
+                    }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
                   <div className="absolute top-3 left-3">
@@ -164,18 +208,50 @@ export default function NewsPage() {
                   <p className="text-gray-400 text-sm line-clamp-2 leading-relaxed font-medium">
                     {article.excerpt}
                   </p>
-                  <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                  <div className="flex items-center justify-between pt-4 border-t border-white/5">
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded-full bg-brand-red/20 flex items-center justify-center">
                         <User size={12} className="text-brand-red" />
                       </div>
-                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{article.author}</span>
+                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest truncate max-w-[80px]">{article.author}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-gray-600">
-                      <Clock size={10} />
-                      <span className="text-[10px] font-bold uppercase tracking-widest">
-                        {article.createdAt?.toDate().toLocaleDateString() || 'Today'}
-                      </span>
+                    
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1 text-gray-600">
+                        <Clock size={10} />
+                        <span className="text-[10px] font-bold uppercase tracking-widest">
+                          {calculateReadingTime(article.content || article.excerpt)} Min
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 text-gray-600 mr-2">
+                        <Eye size={10} />
+                        <span className="text-[10px] font-bold uppercase tracking-widest">
+                          {article.views || 0}
+                        </span>
+                      </div>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const shareUrl = article.link || window.location.href;
+                          if (navigator.share) {
+                            navigator.share({ title: article.title, text: article.excerpt, url: shareUrl }).catch(console.error);
+                          } else {
+                            navigator.clipboard.writeText(shareUrl);
+                            alert("Link copied!");
+                          }
+                        }}
+                        className="text-gray-500 hover:text-white transition-colors p-1"
+                        aria-label="Share"
+                      >
+                        <Share2 size={14} />
+                      </button>
+                      <button 
+                        onClick={(e) => toggleBookmark(article.id, e)}
+                        className={`transition-colors p-1 ${bookmarkedIds.includes(article.id) ? 'text-brand-red' : 'text-gray-500 hover:text-brand-red'}`}
+                        aria-label="Save"
+                      >
+                        <Bookmark size={14} fill={bookmarkedIds.includes(article.id) ? "currentColor" : "none"} />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -208,13 +284,16 @@ export default function NewsPage() {
                 <X size={24} style={{ color: '#ffffff' }} />
               </button>
 
-              <div className="relative w-full h-[300px] md:h-[450px]">
-                <Image 
-                  src={selectedArticle.image} 
+              <div className="relative w-full h-[300px] md:h-[450px] bg-white/5 flex items-center justify-center">
+                <img 
+                  src={selectedArticle.image || '/logo.png'} 
                   alt={selectedArticle.title} 
-                  fill 
-                  className="object-cover"
-                  unoptimized={true}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = '/logo.png';
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.className = "w-48 h-48 object-contain opacity-20";
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-brand-black via-brand-black/20 to-transparent" />
                 <div className="absolute bottom-8 left-8 right-8">
@@ -239,14 +318,70 @@ export default function NewsPage() {
                       {selectedArticle.createdAt?.toDate().toLocaleDateString() || 'Recently Published'}
                     </span>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Clock size={18} className="text-brand-red" />
+                    <span className="text-xs font-bold uppercase tracking-widest">
+                      {calculateReadingTime(selectedArticle.content || selectedArticle.excerpt)} MIN READ
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Eye size={18} className="text-brand-red" />
+                    <span className="text-xs font-bold uppercase tracking-widest">
+                      {selectedArticle.views || 0} VIEWS
+                    </span>
+                  </div>
+                  
+                  <div className="flex-1 flex justify-end gap-3 mt-4 md:mt-0">
+                    <button 
+                      onClick={() => {
+                        const shareUrl = selectedArticle.link || window.location.href;
+                        if (navigator.share) {
+                          navigator.share({
+                            title: selectedArticle.title,
+                            text: selectedArticle.excerpt,
+                            url: shareUrl,
+                          }).catch(console.error);
+                        } else {
+                          navigator.clipboard.writeText(shareUrl);
+                          alert("Link copied to clipboard!");
+                        }
+                      }}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5"
+                    >
+                      <Share2 size={16} className="text-gray-400" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Share</span>
+                    </button>
+                    <button 
+                      onClick={(e) => toggleBookmark(selectedArticle.id, e)}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5"
+                    >
+                      <Bookmark size={16} className={bookmarkedIds.includes(selectedArticle.id) ? "text-brand-red" : "text-gray-400"} fill={bookmarkedIds.includes(selectedArticle.id) ? "currentColor" : "none"} />
+                      <span className={`text-[10px] font-bold uppercase tracking-widest ${bookmarkedIds.includes(selectedArticle.id) ? "text-brand-red" : "text-gray-400"}`}>
+                        {bookmarkedIds.includes(selectedArticle.id) ? 'Saved' : 'Save'}
+                      </span>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="prose prose-invert max-w-none">
+                <div className="prose prose-invert max-w-none w-full">
                   <div className="text-gray-300 text-base md:text-lg leading-relaxed space-y-6 font-medium">
                     {selectedArticle.content?.split('\n').map((paragraph, index) => (
                       <p key={index}>{paragraph}</p>
                     )) || selectedArticle.excerpt}
                   </div>
+                  
+                  {selectedArticle.link && (
+                    <div className="mt-12 flex justify-center border-t border-white/5 pt-8">
+                      <a 
+                        href={selectedArticle.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="bg-brand-red text-white px-8 py-4 rounded-xl text-sm font-bold uppercase tracking-wider hover:bg-red-700 transition-colors shadow-lg flex items-center gap-2"
+                      >
+                        Read Full Story on Original Site
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>

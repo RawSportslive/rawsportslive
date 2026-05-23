@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
+import * as cheerio from 'cheerio';
 
 interface FeedConfig {
   url: string;
@@ -23,6 +24,16 @@ const FEEDS: FeedConfig[] = [
     url: 'https://feeds.bbci.co.uk/sport/cricket/rss.xml',
     category: 'Rumors',
     fallbackImage: 'https://images.unsplash.com/photo-1531415080290-bc98545ab2ef?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    url: 'https://www.skysports.com/rss/12040',
+    category: 'WWE News',
+    fallbackImage: 'https://images.unsplash.com/photo-1599058917212-d750089bc07e?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    url: 'https://english.onlinekhabar.com/category/sports/feed',
+    category: 'Nepal',
+    fallbackImage: 'https://images.unsplash.com/photo-1518659186638-cd5df6355b22?auto=format&fit=crop&w=800&q=80',
   }
 ];
 
@@ -70,6 +81,7 @@ function parseRSS(xmlText: string, category: string, fallbackImg: string) {
         title,
         excerpt,
         content: content + `\n\nRead the full story at: ${link}`,
+        link: link,
         image: imageUrl,
         category,
         author,
@@ -116,6 +128,44 @@ Excerpt: ${summary}`
   }
 }
 
+// Scrape original full content from the source URL
+async function scrapeOriginalContent(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+      next: { revalidate: 3600 }
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    const $ = cheerio.load(html);
+    
+    // Remove unwanted elements like scripts, styles, ads, nav
+    $('script, style, iframe, nav, footer, header, aside, form, .ad, .advertisement, .social-share, .comments').remove();
+    
+    let textContent: string[] = [];
+    
+    // Try to find the main article container
+    const articleBody = $('article, .article-body, .post-content, .story-body, .entry-content, main').first();
+    const context = articleBody.length > 0 ? articleBody : $('body');
+    
+    context.find('p').each((_, el) => {
+      const text = $(el).text().trim();
+      // Filter out short metadata paragraphs, links, or junk
+      if (text.length > 40) {
+        textContent.push(text);
+      }
+    });
+    
+    if (textContent.length > 0) {
+      return textContent.join('\n\n');
+    }
+    return null;
+  } catch (err) {
+    console.error(`Scraping failed for ${url}:`, err);
+    return null;
+  }
+}
+
 export async function GET(request: Request) {
   // Optional auth key check for security (can be configured in Vercel CRON)
   const { searchParams } = new URL(request.url);
@@ -150,13 +200,19 @@ export async function GET(request: Request) {
           .get();
 
         if (existingSnap.empty) {
-          // Dynamic Expansion: Automatically call Gemini to draft full premium paragraphs!
-          const fullContent = await generateDetailedArticle(article.title, article.excerpt);
+          // Try scraping original full content from URL first
+          let fullContent = article.link ? await scrapeOriginalContent(article.link) : null;
+          
+          if (!fullContent) {
+            // Dynamic Expansion: Automatically call Gemini to draft full premium paragraphs!
+            fullContent = await generateDetailedArticle(article.title, article.excerpt);
+          }
 
           await adminDb.collection('news').add({
             title: article.title,
             excerpt: article.excerpt,
             content: fullContent,
+            link: article.link,
             image: article.image,
             category: article.category,
             author: article.author,
