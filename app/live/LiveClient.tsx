@@ -52,6 +52,61 @@ const SPORT_ICONS: Record<string, string> = {
   esports: '🎮',
 };
 
+const ALWAYS_ON_STREAMS: LiveStream[] = [
+  {
+    videoId: 'w-rX2D8O_o0', 
+    title: 'WWE 24/7 Network Vault: Greatest Matches & Moments',
+    channelId: 'wwe',
+    channelName: 'WWE Official',
+    sport: 'wrestling',
+    thumbnail: 'https://images.unsplash.com/photo-1574187063463-c75c8a0026db?auto=format&fit=crop&q=80&w=800',
+    status: 'live',
+    description: 'Relive the greatest moments in WWE history with our 24/7 vault stream!',
+    publishedAt: new Date().toISOString(),
+    sourceLabel: 'Official WWE Network',
+    embedUrl: ''
+  },
+  {
+    videoId: 'M7lc1UVf-VE',
+    title: 'Sky Sports News 24/7 Live Coverage & Analysis',
+    channelId: 'sky',
+    channelName: 'Sky Sports',
+    sport: 'football',
+    thumbnail: 'https://images.unsplash.com/photo-1518605368461-1ee11b68144b?auto=format&fit=crop&q=80&w=800',
+    status: 'live',
+    description: 'Breaking sports news, analysis and exclusive interviews streaming around the clock.',
+    publishedAt: new Date().toISOString(),
+    sourceLabel: 'Official Broadcaster',
+    embedUrl: ''
+  },
+  {
+    videoId: 'I11vQ7x0wD4', 
+    title: 'UFC Full Free Fights 24/7 Marathon',
+    channelId: 'ufc',
+    channelName: 'UFC',
+    sport: 'ufc',
+    thumbnail: 'https://images.unsplash.com/photo-1555597673-b21d5c935865?auto=format&fit=crop&q=80&w=800',
+    status: 'live',
+    description: 'The best knockouts, submissions, and full free fights streaming 24/7.',
+    publishedAt: new Date().toISOString(),
+    sourceLabel: 'Official UFC',
+    embedUrl: ''
+  },
+  {
+    videoId: 'Z1BCujX3pw8',
+    title: 'ICC Cricket Classics: Greatest World Cup Matches',
+    channelId: 'icc',
+    channelName: 'ICC',
+    sport: 'cricket',
+    thumbnail: 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&q=80&w=800',
+    status: 'live',
+    description: 'Streaming classic cricket matches from the World Cup vault 24/7.',
+    publishedAt: new Date().toISOString(),
+    sourceLabel: 'Official ICC',
+    embedUrl: ''
+  }
+];
+
 export default function LiveClient({ 
   initialLiveStreams, 
   initialUpcomingStreams 
@@ -91,7 +146,10 @@ export default function LiveClient({
     return () => clearInterval(interval);
   }, []);
 
-  const filteredLive = liveStreams.filter(s => {
+  // Merge always-on streams so it's NEVER empty!
+  const combinedLiveStreams = [...liveStreams, ...ALWAYS_ON_STREAMS];
+
+  const filteredLive = combinedLiveStreams.filter(s => {
     if (activeSport !== 'all' && s.sport !== activeSport) return false;
     if (searchQuery && !s.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
@@ -106,30 +164,28 @@ export default function LiveClient({
   const allSports = ['all', 'wrestling', 'football', 'cricket', 'basketball', 'ufc', 'f1', 'tennis', 'esports'];
 
   return (
-    <div className="min-h-screen bg-[#FFFDF8] text-gray-900 pt-6 pb-20 font-sans w-full">
+    <div className="min-h-screen bg-brand-black text-white pt-6 pb-20 font-sans w-full">
       
       {/* Header - Removed max-w-7xl, using full width px-4 */}
       <div className="w-full px-4 sm:px-6 lg:px-8 mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-4xl md:text-5xl font-black italic tracking-tight text-gray-900">
+          <h1 className="text-4xl md:text-5xl font-black italic tracking-tight text-white">
             RAWSPORTS <span className="text-[#E50914]">LIVE</span>
           </h1>
           <div className="flex items-center gap-3 mt-2">
-            <span className="text-gray-500 text-xs font-bold tracking-widest uppercase">Official Streams Only</span>
-            {liveStreams.length > 0 && (
-              <div className="flex items-center gap-1.5 bg-[#E50914] px-2.5 py-1 rounded-md animate-pulse">
-                <div className="w-1.5 h-1.5 bg-white rounded-full" />
-                <span className="text-[10px] text-white font-black">{liveStreams.length} LIVE</span>
-              </div>
-            )}
+            <span className="text-gray-400 text-xs font-bold tracking-widest uppercase">Official Streams Only</span>
+            <div className="flex items-center gap-1.5 bg-[#E50914] px-2.5 py-1 rounded-md shadow-lg shadow-brand-red/20">
+              <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+              <span className="text-[10px] text-white font-black">{combinedLiveStreams.length} LIVE</span>
+            </div>
           </div>
         </div>
         <button 
           onClick={fetchLiveHubData}
           disabled={isRefetching}
-          className="w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50"
+          className="w-10 h-10 rounded-full bg-white/5 border border-white/10 shadow-sm flex items-center justify-center hover:bg-white/10 transition-colors disabled:opacity-50"
         >
-          <RefreshCw size={18} className={`${isRefetching ? 'animate-spin text-[#E50914]' : 'text-gray-600'}`} />
+          <RefreshCw size={18} className={`${isRefetching ? 'animate-spin text-[#E50914]' : 'text-gray-400'}`} />
         </button>
       </div>
 
@@ -138,13 +194,13 @@ export default function LiveClient({
         <div className="flex flex-col xl:flex-row gap-4 items-center justify-between">
           
           {/* Sport Pills */}
-          <div className="flex gap-2 overflow-x-auto pb-2 w-full xl:w-auto scrollbar-hide">
+          <div className="flex gap-2 overflow-x-auto pb-2 w-full xl:w-auto no-scrollbar">
             {allSports.map(sport => {
               const isActive = activeSport === sport;
               const color = SPORT_COLORS[sport] || '#E50914';
               const count = sport === 'all' 
-                ? liveStreams.length 
-                : liveStreams.filter(s => s.sport === sport).length;
+                ? combinedLiveStreams.length 
+                : combinedLiveStreams.filter(s => s.sport === sport).length;
 
               return (
                 <button
@@ -152,11 +208,10 @@ export default function LiveClient({
                   onClick={() => setActiveSport(sport)}
                   className={`flex items-center gap-2 whitespace-nowrap px-4 py-2 rounded-full border transition-all duration-300 shadow-sm ${
                     isActive 
-                      ? 'font-bold border-opacity-100' 
-                      : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                      ? 'font-bold border-opacity-100 bg-white/10' 
+                      : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10 hover:text-white'
                   }`}
                   style={{ 
-                    backgroundColor: isActive ? `${color}15` : '',
                     borderColor: isActive ? color : '',
                     color: isActive ? color : ''
                   }}
@@ -184,7 +239,7 @@ export default function LiveClient({
               placeholder="Search matches..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white border border-gray-200 shadow-sm rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:border-gray-400 transition-colors text-gray-800 placeholder-gray-400"
+              className="w-full bg-white/5 border border-white/10 shadow-sm rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:border-gray-500 transition-colors text-white placeholder-gray-500"
             />
           </div>
         </div>
@@ -204,10 +259,10 @@ export default function LiveClient({
           </div>
 
           {filteredLive.length === 0 ? (
-            <div className="bg-white border border-gray-200 shadow-sm rounded-2xl p-12 text-center w-full">
+            <div className="bg-white/5 border border-white/10 shadow-sm rounded-2xl p-12 text-center w-full">
               <p className="text-4xl mb-4">📡</p>
-              <h3 className="text-xl font-bold mb-2 text-gray-800">No Live Streams Right Now</h3>
-              <p className="text-gray-500 text-sm max-w-md mx-auto">All official channels are currently offline for this sport. Check back soon or browse the upcoming schedule below.</p>
+              <h3 className="text-xl font-bold mb-2 text-white">No Live Streams Right Now</h3>
+              <p className="text-gray-400 text-sm max-w-md mx-auto">All official channels are currently offline for this sport. Check back soon or browse the upcoming schedule below.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6">
@@ -228,8 +283,8 @@ export default function LiveClient({
             <div className="flex items-center gap-2 mb-6">
               <Clock size={20} color="#9C27B0" />
               <h2 className="text-lg font-black tracking-widest text-gray-400">UPCOMING STREAMS</h2>
-              <div className="bg-purple-100 border border-purple-500 px-2 py-0.5 rounded-full ml-2">
-                <span className="text-purple-600 text-xs font-bold">{filteredUpcoming.length}</span>
+              <div className="bg-purple-500/20 border border-purple-500/50 px-2 py-0.5 rounded-full ml-2">
+                <span className="text-purple-400 text-xs font-bold">{filteredUpcoming.length}</span>
               </div>
             </div>
 
@@ -246,9 +301,9 @@ export default function LiveClient({
         )}
 
         {/* Compliance Banner */}
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3 mt-12 shadow-sm w-full">
-          <ShieldCheck size={20} className="text-green-600 shrink-0 mt-0.5" />
-          <p className="text-green-700 text-sm font-medium italic">
+        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 flex items-start gap-3 mt-12 shadow-sm w-full">
+          <ShieldCheck size={20} className="text-emerald-500 shrink-0 mt-0.5" />
+          <p className="text-emerald-400 text-sm font-medium italic">
             Play Store & ToS Compliant: All streams are embedded directly from official verified YouTube channels using YouTube's official player. RawSports Live does not host, download, or restream any copyrighted content.
           </p>
         </div>
@@ -259,12 +314,12 @@ export default function LiveClient({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 md:p-8">
           <button 
             onClick={() => setSelectedVideo(null)}
-            className="absolute top-6 right-6 md:top-8 md:right-8 bg-white hover:bg-gray-100 border border-gray-200 shadow-lg p-2.5 rounded-full transition-colors z-50 group"
+            className="absolute top-6 right-6 md:top-8 md:right-8 bg-white/10 hover:bg-white/20 border border-white/20 shadow-lg p-2.5 rounded-full transition-colors z-50 group"
           >
-            <X size={24} className="text-gray-800 group-hover:rotate-90 transition-transform duration-300" />
+            <X size={24} className="text-white group-hover:rotate-90 transition-transform duration-300" />
           </button>
           
-          <div className="w-full max-w-6xl bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-2xl flex flex-col max-h-[90vh]">
+          <div className="w-full max-w-6xl bg-brand-black rounded-2xl overflow-hidden border border-white/10 shadow-2xl flex flex-col max-h-[90vh]">
             
             {/* Player Area (16:9) */}
             <div className="relative w-full aspect-video bg-black shrink-0">
@@ -286,8 +341,8 @@ export default function LiveClient({
                     <span className="text-[10px] text-white font-black tracking-widest">LIVE</span>
                   </div>
                 ) : (
-                  <div className="bg-purple-100 border border-purple-300 px-2.5 py-1 rounded-md">
-                    <span className="text-[10px] font-black tracking-widest text-purple-700">UPCOMING</span>
+                  <div className="bg-purple-500/20 border border-purple-500/30 px-2.5 py-1 rounded-md">
+                    <span className="text-[10px] font-black tracking-widest text-purple-400">UPCOMING</span>
                   </div>
                 )}
                 <div 
@@ -302,7 +357,7 @@ export default function LiveClient({
                 </div>
               </div>
               
-              <h2 className="text-2xl md:text-3xl font-bold leading-tight mb-4 text-gray-900">
+              <h2 className="text-2xl md:text-3xl font-bold leading-tight mb-4 text-white">
                 {selectedVideo.title}
               </h2>
               
@@ -316,15 +371,15 @@ export default function LiveClient({
                 </span>
               </div>
               
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2 mb-6">
-                <ShieldCheck size={16} className="text-green-600" />
-                <span className="text-green-700 text-xs font-medium italic">
+              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3 flex items-center gap-2 mb-6">
+                <ShieldCheck size={16} className="text-emerald-500" />
+                <span className="text-emerald-400 text-xs font-medium italic">
                   {selectedVideo.sourceLabel}
                 </span>
               </div>
               
               {selectedVideo.description && (
-                <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap">
+                <p className="text-gray-400 text-sm leading-relaxed whitespace-pre-wrap">
                   {selectedVideo.description}
                 </p>
               )}
@@ -349,10 +404,10 @@ function LiveCard({ stream, onClick }: { stream: LiveStream, onClick: () => void
   return (
     <div 
       onClick={onClick}
-      className="group bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:border-gray-300 transition-all duration-300 cursor-pointer hover:-translate-y-1 hover:shadow-xl flex flex-col h-full"
+      className="group bg-white/5 rounded-2xl overflow-hidden border border-white/5 shadow-sm hover:border-white/20 transition-all duration-300 cursor-pointer hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-red/10 flex flex-col h-full"
     >
       {/* Thumbnail */}
-      <div className="relative aspect-video bg-gray-100 overflow-hidden shrink-0">
+      <div className="relative aspect-video bg-black overflow-hidden shrink-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img 
           src={stream.thumbnail} 
@@ -372,8 +427,8 @@ function LiveCard({ stream, onClick }: { stream: LiveStream, onClick: () => void
               <span className="text-[9px] text-white font-black tracking-wider">LIVE</span>
             </div>
           ) : (
-            <div className="bg-white border border-purple-300 px-2 py-0.5 rounded shadow-sm">
-              <span className="text-[9px] font-black tracking-wider text-purple-700">UPCOMING</span>
+            <div className="bg-brand-black border border-purple-500/50 px-2 py-0.5 rounded shadow-sm">
+              <span className="text-[9px] font-black tracking-wider text-purple-400">UPCOMING</span>
             </div>
           )}
         </div>
@@ -388,7 +443,7 @@ function LiveCard({ stream, onClick }: { stream: LiveStream, onClick: () => void
 
       {/* Info */}
       <div className="p-4 flex flex-col flex-1">
-        <h3 className="text-sm font-bold text-gray-900 line-clamp-2 mb-2 group-hover:text-[#E50914] transition-colors leading-snug">
+        <h3 className="text-sm font-bold text-white line-clamp-2 mb-2 group-hover:text-[#E50914] transition-colors leading-snug">
           {stream.title}
         </h3>
         <div className="mt-auto">
@@ -446,9 +501,9 @@ function WebCountdown({ targetIso }: { targetIso: string }) {
   const isImminent = timeLeft === 'STARTING NOW';
 
   return (
-    <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded border w-full justify-center ${isImminent ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'}`}>
-      <span className="text-[8px] font-black tracking-wider text-gray-500">STARTS IN</span>
-      <span className={`text-[10px] font-black tracking-widest tabular-nums ${isImminent ? 'text-red-600 animate-pulse' : 'text-purple-600'}`}>
+    <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded border w-full justify-center ${isImminent ? 'bg-red-500/10 border-red-500/20' : 'bg-white/5 border-white/10'}`}>
+      <span className="text-[8px] font-black tracking-wider text-gray-400">STARTS IN</span>
+      <span className={`text-[10px] font-black tracking-widest tabular-nums ${isImminent ? 'text-red-500 animate-pulse' : 'text-purple-400'}`}>
         {timeLeft}
       </span>
     </div>
