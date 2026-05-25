@@ -230,7 +230,7 @@ export default function SportsHubPage() {
             className="grid grid-cols-1 xl:grid-cols-2 gap-6"
           >
             {matches.length === 0 ? (
-              <div className="col-span-full bg-white/5 border border-white/10 rounded-2xl p-12 text-center space-y-4 shadow-sm">
+              <div className="col-span-full border-y border-gray-200 py-12 text-center space-y-4">
                 <Trophy className="mx-auto text-gray-600" size={36} />
                 <h3 className="text-base font-bold text-white uppercase tracking-wider">No Active Competitions</h3>
                 <p className="text-gray-400 max-w-sm mx-auto text-xs">
@@ -249,7 +249,7 @@ export default function SportsHubPage() {
                 return (
                   <div 
                     key={match.id}
-                    className="bg-white/5 border border-white/5 rounded-2xl p-6 shadow-sm hover:border-brand-red/30 transition-all space-y-5"
+                    className="border-b border-gray-200 py-6 hover:bg-gray-50/50 transition-all space-y-5"
                   >
                     {/* Card Header */}
                     <div className="flex justify-between items-center border-b border-white/5 pb-3">
@@ -404,7 +404,7 @@ export default function SportsHubPage() {
             className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
           >
             {fixtures.length === 0 ? (
-              <div className="col-span-full bg-white/5 border border-white/10 rounded-2xl p-12 text-center space-y-4 shadow-sm">
+              <div className="col-span-full border-y border-gray-200 py-12 text-center space-y-4">
                 <Calendar className="mx-auto text-gray-600" size={36} />
                 <h3 className="text-base font-bold text-white uppercase tracking-wider">No Upcoming Matches</h3>
                 <p className="text-gray-400 max-w-sm mx-auto text-xs">
@@ -413,7 +413,7 @@ export default function SportsHubPage() {
               </div>
             ) : (
               fixtures.map((item) => (
-                <div key={item.id} className="bg-white/5 border border-white/5 rounded-2xl p-5 shadow-sm space-y-4 hover:border-brand-red/30 transition-all">
+                <div key={item.id} className="border-b border-gray-200 py-5 space-y-4 hover:bg-gray-50/50 transition-all">
                   <div className="flex justify-between items-center border-b border-white/5 pb-2.5">
                     <span className="text-[9px] font-bold uppercase text-brand-red tracking-wider">{item.league}</span>
                     <span className="text-[10px] text-gray-500 font-bold tracking-widest uppercase">{new Date(item.date).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
@@ -465,7 +465,7 @@ export default function SportsHubPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="bg-white/5 border border-white/5 rounded-2xl shadow-sm overflow-hidden"
+            className="border-y border-gray-200 overflow-hidden"
           >
             {standings.length === 0 ? (
               <div className="p-12 text-center space-y-4">

@@ -74,6 +74,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="dns-prefetch" href="https://www.googleapis.com" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         
+        {/* Google AdSense Verification Script */}
+        <script 
+          async 
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2257245018050591" 
+          crossOrigin="anonymous" 
+        />
+
         {/* Bulletproof status bar filled red color */}
         <meta name="theme-color" content="#FFBF00" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

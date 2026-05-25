@@ -9,9 +9,10 @@ import NewsCard from '@/components/NewsCard';
 import SectionHeader from '@/components/SectionHeader';
 import VideoPlayer from '@/components/VideoPlayer';
 import VideoEngagement from '@/components/VideoEngagement';
-import { PlayCircle, Trophy, Search, Bell, Menu, Loader2, X, Shield, Home as HomeIcon, Newspaper, Calendar, Clock, Tv, Check } from 'lucide-react';
+import { PlayCircle, Trophy, Search, Bell, Menu, Loader2, X, Shield, Home as HomeIcon, Newspaper, Calendar, Clock, Tv, Check, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import LegalDoc from '@/components/LegalDoc';
 
 const DEFAULT_LEGAL_TEXTS = {
   privacy: `RAWSPORTS LIVE - PRIVACY POLICY
@@ -182,11 +183,20 @@ export default function Home() {
   const [legalDocContent, setLegalDocContent] = useState('');
   const [loadingLegalDoc, setLoadingLegalDoc] = useState(false);
 
+  const [showNotificationOptions, setShowNotificationOptions] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState<string>('default');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setNotificationPermission(Notification.permission);
+    }
+  }, []);
+
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Lock body scroll when search, video modal, legal modal, or schedule modal is open
   useEffect(() => {
-    if (activeVideo || showSearch || selectedLegalKey || showMenu || activeSchedulePost) {
+    if (activeVideo || showSearch || selectedLegalKey || showMenu || activeSchedulePost || showNotificationOptions) {
       document.body.style.overflow = 'hidden';
       document.body.style.touchAction = 'none';
     } else {
@@ -197,7 +207,7 @@ export default function Home() {
       document.body.style.overflow = '';
       document.body.style.touchAction = '';
     };
-  }, [activeVideo, showSearch, selectedLegalKey, showMenu, activeSchedulePost]);
+  }, [activeVideo, showSearch, selectedLegalKey, showMenu, activeSchedulePost, showNotificationOptions]);
 
   // Highlights horizontal auto-scrolling
   useEffect(() => {
@@ -389,14 +399,11 @@ export default function Home() {
             <Search size={20} className="cursor-pointer" color="#000" onClick={() => setShowSearch(true)} />
             <div
               className="relative cursor-pointer group"
-              onClick={async () => {
-                const { requestNotificationPermission } = await import('@/lib/firebase');
-                const token = await requestNotificationPermission();
-                if (token) {
-                  setToastMessage('Notifications enabled! You will be alerted before live matches.');
-                } else {
-                  setToastMessage('Please allow notifications in your browser to get match alerts.');
+              onClick={() => {
+                if (typeof window !== 'undefined' && 'Notification' in window) {
+                  setNotificationPermission(Notification.permission);
                 }
+                setShowNotificationOptions(true);
               }}
             >
               <Bell size={20} color="#000" />
@@ -639,21 +646,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Newsletter / Join Section */}
-        <section className="px-6 pb-12">
-          <div className="bg-gradient-to-br from-brand-red to-red-900 rounded-3xl p-8 relative overflow-hidden shadow-2xl">
-            <div className="relative z-10 space-y-4">
-              <h2 className="text-3xl font-bold leading-none text-white">Unlock Exclusive <br />Insider Access</h2>
-              <p className="text-sm text-white/90 max-w-sm font-medium">Join the RawSports Live community to get early access to match cards, exclusive wallpapers, and member-only rewards.</p>
-              <div className="flex gap-4 pt-2">
-                <button className="bg-white text-brand-red px-8 py-3 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-gray-100 transition-all shadow-lg">
-                  Join Insider
-                </button>
-              </div>
-            </div>
-            <Trophy size={180} className="absolute -right-8 -bottom-8 opacity-10 -rotate-12 text-white" />
-          </div>
-        </section>
+
       </div>
 
       {/* Dynamic Slide-out Sidebar Drawer for Menu */}
@@ -737,19 +730,19 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 md:p-8 overflow-y-auto no-scrollbar"
+            className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 md:p-8 overflow-y-auto no-scrollbar"
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 30 }}
+              initial={{ scale: 0.95, opacity: 0, y: 30 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 30 }}
-              className="relative w-full max-w-3xl bg-[#121212] rounded-3xl overflow-hidden border border-white/10 shadow-2xl my-auto"
+              exit={{ scale: 0.95, opacity: 0, y: 30 }}
+              className="relative w-full max-w-3xl bg-[#faf9f6] rounded-3xl overflow-hidden border border-black/10 shadow-2xl my-auto"
             >
               {/* Header */}
-              <div className="p-6 border-b border-white/5 flex items-center justify-between bg-black/40">
+              <div className="p-6 border-b border-black/10 flex items-center justify-between bg-[#f4f1ea]">
                 <div className="flex items-center gap-3">
                   <Shield size={20} className="text-[#FFBF00]" />
-                  <h3 className="font-bold text-base uppercase tracking-tight" style={{ color: '#ffffff' }}>
+                  <h3 className="font-bold text-base uppercase tracking-tight text-gray-900">
                     {selectedLegalKey === 'privacy' && 'Privacy Policy'}
                     {selectedLegalKey === 'terms' && 'Terms of Service'}
                     {selectedLegalKey === 'cookies' && 'Cookies Policy'}
@@ -758,32 +751,32 @@ export default function Home() {
                 </div>
                 <button
                   onClick={() => setSelectedLegalKey(null)}
-                  className="p-2.5 rounded-xl bg-white/5 text-white hover:bg-brand-red transition-all"
-                  style={{ color: '#ffffff' }}
+                  className="p-2.5 rounded-xl bg-black/5 text-gray-800 hover:bg-black/10 transition-all flex items-center justify-center"
                 >
-                  <X size={18} style={{ color: '#ffffff' }} />
+                  <X size={18} className="text-gray-800" />
                 </button>
               </div>
 
               {/* Body Content */}
-              <div className="p-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
+              <div className="p-8 max-h-[60vh] overflow-y-auto bg-white custom-scrollbar select-text">
                 {loadingLegalDoc ? (
                   <div className="flex flex-col items-center justify-center py-16 gap-3">
                     <Loader2 className="animate-spin text-[#FFBF00]" size={36} />
-                    <p className="text-[10px] font-bold uppercase tracking-widest animate-pulse" style={{ color: '#888888' }}>Loading compliance data...</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest animate-pulse text-gray-500">Loading compliance data...</p>
                   </div>
                 ) : (
-                  <div className="text-xs md:text-sm leading-relaxed space-y-4 font-medium whitespace-pre-wrap" style={{ color: '#e5e7eb' }}>
-                    {legalDocContent}
-                  </div>
+                  <LegalDoc 
+                    policyKey={selectedLegalKey} 
+                    dynamicAddendum={legalDocContent && legalDocContent.trim() !== '' && legalDocContent !== DEFAULT_LEGAL_TEXTS[selectedLegalKey] ? legalDocContent : undefined} 
+                  />
                 )}
               </div>
 
               {/* Footer */}
-              <div className="p-6 bg-black/40 border-t border-white/5 flex justify-end">
+              <div className="p-6 bg-[#f4f1ea] border-t border-black/10 flex justify-end">
                 <button
                   onClick={() => setSelectedLegalKey(null)}
-                  className="px-6 py-3 rounded-xl bg-[#FFBF00] hover:bg-amber-500 text-black font-bold uppercase text-[10px] tracking-wider transition-all"
+                  className="px-6 py-3 rounded-xl bg-[#FFBF00] hover:bg-amber-500 text-black font-bold uppercase text-[10px] tracking-wider transition-all shadow-md active:scale-95"
                 >
                   Understood & Close
                 </button>
@@ -898,6 +891,145 @@ export default function Home() {
                   onClick={() => setActiveSchedulePost(null)}
                   className="px-5 py-2 rounded-md text-sm font-semibold transition-colors"
                   style={{ backgroundColor: '#1a1a1a', color: '#ffffff' }}
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Notification Options Modal */}
+      <AnimatePresence>
+        {showNotificationOptions && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-black/60 flex items-center justify-center p-4 overflow-y-auto"
+            onClick={() => setShowNotificationOptions(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-md rounded-xl overflow-hidden shadow-2xl my-auto border border-gray-300"
+              style={{ backgroundColor: '#FAF7F2' }}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-300" style={{ backgroundColor: '#F5F0E8' }}>
+                <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                  🔔 Match Alert Manager
+                </h3>
+                <button
+                  onClick={() => setShowNotificationOptions(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 transition-colors text-gray-700"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-5 space-y-6">
+                {/* 1. Status Indicator */}
+                <div className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-xl">
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Browser Permissions</p>
+                    <p className="text-sm font-semibold text-gray-800">
+                      {notificationPermission === 'granted' && 'Granted & Active'}
+                      {notificationPermission === 'denied' && 'Blocked in Browser'}
+                      {notificationPermission === 'default' && 'Permission Required'}
+                    </p>
+                  </div>
+                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                    notificationPermission === 'granted' ? 'bg-green-100 text-green-800' :
+                    notificationPermission === 'denied' ? 'bg-red-100 text-red-800' :
+                    'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {notificationPermission}
+                  </span>
+                </div>
+
+                {/* Info & Instructions Text */}
+                {notificationPermission === 'denied' ? (
+                  <div className="bg-red-50 border border-red-200 rounded-xl p-4 mt-2 animate-fade-in">
+                    <p className="text-sm font-bold text-red-800 flex items-center gap-2 mb-2">
+                      <Shield size={16} /> Notifications Blocked
+                    </p>
+                    <p className="text-xs text-red-700 leading-relaxed mb-3">
+                      Your browser has blocked notifications. To enable match alerts, you must manually allow them:
+                    </p>
+                    <ol className="list-decimal pl-5 text-xs text-red-700 space-y-1.5 font-medium">
+                      <li>Click the <strong>Padlock or Tune icon</strong> (🔒) in your browser's top URL address bar.</li>
+                      <li>Find the <strong>Notifications</strong> setting in the dropdown.</li>
+                      <li>Change the permission from Block to <strong>Allow</strong>.</li>
+                      <li>Refresh this page to apply your new settings.</li>
+                    </ol>
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    Allow match notifications to receive real-time alerts 15 minutes before the show begins. Alarms are saved locally and synced with Firebase.
+                  </p>
+                )}
+
+                {/* 2. Interactive Options */}
+                <div className="space-y-3">
+                  {/* Enable Notifications Button */}
+                  <button
+                    onClick={async () => {
+                      try {
+                        const { requestNotificationPermission } = await import('@/lib/firebase');
+                        const token = await requestNotificationPermission();
+                        if (token) {
+                          setNotificationPermission('granted');
+                          setToastMessage('Push notifications enabled!');
+                        } else {
+                          setNotificationPermission('denied');
+                          setToastMessage('Please allow notifications in your browser settings.');
+                        }
+                      } catch (err) {
+                        console.error(err);
+                        setToastMessage('Failed to obtain permission.');
+                      }
+                    }}
+                    className="w-full flex items-center justify-between p-4 bg-white hover:bg-amber-50 border border-gray-200 hover:border-amber-300 rounded-2xl transition-all group text-left border-solid"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-gray-900 group-hover:text-amber-600 transition-colors">
+                        {notificationPermission === 'granted' ? '🔔 Re-authorize Push Alerts' : '🔔 Request Push Permission'}
+                      </p>
+                      <p className="text-[10px] text-gray-500 mt-0.5">Toggle browser notification keys.</p>
+                    </div>
+                    <ArrowRight size={14} className="text-gray-400 group-hover:text-amber-600 transition-colors" />
+                  </button>
+
+
+                  {/* Clear alarms button */}
+                  {scheduledAlerts.length > 0 && (
+                    <button
+                      onClick={() => {
+                        setScheduledAlerts([]);
+                        setToastMessage('Cleared all scheduled alarms.');
+                      }}
+                      className="w-full flex items-center justify-between p-4 bg-red-50 hover:bg-red-100 border border-red-100 hover:border-red-200 rounded-2xl transition-all group text-left border-solid animate-fade-in"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-red-700">❌ Clear Scheduled Alarms</p>
+                        <p className="text-[10px] text-red-500 mt-0.5">Wipe all {scheduledAlerts.length} match reminders from memory.</p>
+                      </div>
+                      <ArrowRight size={14} className="text-red-400" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-5 py-4 border-t border-gray-300 flex items-center justify-end" style={{ backgroundColor: '#F5F0E8' }}>
+                <button
+                  onClick={() => setShowNotificationOptions(false)}
+                  className="px-5 py-2 rounded-md text-sm font-semibold transition-colors bg-gray-900 hover:bg-black text-white"
                 >
                   Close
                 </button>

@@ -5,6 +5,7 @@ import { db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { Shield, ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import LegalDoc from '@/components/LegalDoc';
 
 const DEFAULT_TEXT = `RAWSPORTS LIVE - DATA DELETION INSTRUCTIONS
 Last Updated: May 2026
@@ -30,7 +31,7 @@ export default function DeletionPage() {
       try {
         const snap = await getDoc(doc(db, 'legal', 'deletion'));
         if (snap.exists()) {
-          setContent(snap.data().content || DEFAULT_TEXT);
+          setContent(snap.data().content || '');
         } else {
           setContent(DEFAULT_TEXT);
         }
@@ -43,6 +44,9 @@ export default function DeletionPage() {
     };
     fetchDoc();
   }, []);
+
+  // Determine if the fetched database content is a custom memo/addendum
+  const isCustomAddendum = content && content.trim() !== '' && content.trim() !== DEFAULT_TEXT.trim();
 
   return (
     <div className="min-h-screen bg-[#faf9f6] text-[#121212]">
@@ -59,7 +63,7 @@ export default function DeletionPage() {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-6 py-12 pb-24 space-y-8">
+      <div className="max-w-4xl mx-auto px-6 py-12 pb-24 space-y-8 animate-fade-in">
         {/* Title */}
         <div className="flex items-center gap-4 border-b border-black/10 pb-6">
           <div className="w-12 h-12 rounded-2xl bg-black flex items-center justify-center text-[#FFBF00] shadow-lg shadow-black/10">
@@ -79,9 +83,10 @@ export default function DeletionPage() {
               <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest animate-pulse">Loading compliance data...</p>
             </div>
           ) : (
-            <div className="text-black text-sm md:text-base leading-relaxed space-y-6 whitespace-pre-wrap font-medium select-text">
-              {content}
-            </div>
+            <LegalDoc 
+              policyKey="deletion" 
+              dynamicAddendum={isCustomAddendum ? content : undefined} 
+            />
           )}
         </div>
 

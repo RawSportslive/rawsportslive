@@ -373,6 +373,11 @@ function AuthFlow({ isLogin, setIsLogin }: any) {
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!username.trim() || !password.trim()) {
+      setStatus('error');
+      setErrorMsg('Please fill in all fields.');
+      return;
+    }
     setStatus('loading');
     setErrorMsg('');
 
@@ -392,88 +397,117 @@ function AuthFlow({ isLogin, setIsLogin }: any) {
     } catch (error: any) {
       console.error(error);
       setStatus('error');
-      setErrorMsg(error.message.includes('auth/user-not-found') ? 'Competitor not found.' : 'Invalid credentials.');
+      setErrorMsg(error.message.includes('auth/user-not-found') ? 'Account not found.' : 'Invalid credentials or connection error.');
     } finally {
       if (status !== 'error') setStatus('idle');
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center px-8 py-12 bg-brand-black">
+    <div className="min-h-screen flex flex-col justify-center px-6 py-12 bg-[#faf9f6]">
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-sm mx-auto w-full space-y-12"
+        className="max-w-md mx-auto w-full animate-fade-in"
       >
-        <div className="text-center space-y-3">
-          <h1 className="text-3xl font-bold uppercase tracking-tight text-white">
-            {isLogin ? 'SIGN IN' : 'JOIN THE'} <span className="text-brand-red">ZONE</span>
-          </h1>
-          <p className="text-gray-500 font-bold text-[10px] uppercase tracking-[0.4em]">Premium Wrestling Experience</p>
-        </div>
-
-        <form onSubmit={handleEmailAuth} className="space-y-4">
-          <div className="space-y-3">
-            <div className="relative">
-              <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" size={18} />
-              <input 
-                type="text" 
-                placeholder="USERNAME" 
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold uppercase tracking-widest focus:outline-none focus:border-brand-red transition-all text-white placeholder:text-gray-700" 
-              />
-            </div>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" size={18} />
-              <input 
-                type="password" 
-                placeholder="PASSWORD" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold uppercase tracking-widest focus:outline-none focus:border-brand-red transition-all text-white placeholder:text-gray-700" 
-              />
-            </div>
+        <div className="bg-white border border-gray-200 rounded-3xl p-6 md:p-8 shadow-xl shadow-black/[0.02] space-y-6">
+          {/* Header text */}
+          <div className="text-center">
+            <h1 className="text-2xl font-black text-gray-900 tracking-tight uppercase">
+              {isLogin ? 'Sign In' : 'Sign Up'}
+            </h1>
+            <p className="text-xs text-gray-500 font-semibold mt-1 leading-relaxed">
+              {isLogin 
+                ? 'Welcome back! Sign in to manage alerts and saved reports.' 
+                : 'Create an account to start tracking live match schedules.'}
+            </p>
           </div>
 
-          {status === 'error' && <p className="text-brand-red text-[10px] font-bold text-center uppercase tracking-widest">{errorMsg}</p>}
+          <form onSubmit={handleEmailAuth} className="space-y-4">
+            {/* Username / Email Field */}
+            <div className="space-y-1.5">
+              <label className="block text-[10px] font-black uppercase tracking-wider text-gray-700 ml-1">
+                Username or Email
+              </label>
+              <div className="relative">
+                <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <input 
+                  type="text" 
+                  placeholder={isLogin ? "Enter username or email address" : "Enter a new username"} 
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full bg-white border border-gray-300 focus:border-[#FFBF00] focus:ring-2 focus:ring-[#FFBF00]/20 rounded-2xl py-3.5 pl-12 pr-6 text-sm font-semibold focus:outline-none transition-all text-gray-900 placeholder:text-gray-400" 
+                />
+              </div>
+            </div>
 
-          <button 
-            type="submit" 
-            disabled={status === 'loading'}
-            className="w-full bg-brand-red hover:bg-red-700 text-white py-4 rounded-2xl font-bold uppercase text-xs tracking-[0.2em] transition-all flex items-center justify-center gap-2"
-          >
-            {status === 'loading' ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              isLogin ? 'ENTER ARENA' : 'START JOURNEY'
+            {/* Password Field */}
+            <div className="space-y-1.5">
+              <label className="block text-[10px] font-black uppercase tracking-wider text-gray-700 ml-1">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <input 
+                  type="password" 
+                  placeholder="Enter your password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-white border border-gray-300 focus:border-[#FFBF00] focus:ring-2 focus:ring-[#FFBF00]/20 rounded-2xl py-3.5 pl-12 pr-6 text-sm font-semibold focus:outline-none transition-all text-gray-900 placeholder:text-gray-400" 
+                />
+              </div>
+            </div>
+
+            {status === 'error' && (
+              <p className="text-red-600 text-xs font-semibold text-center mt-2">
+                ⚠️ {errorMsg}
+              </p>
             )}
-          </button>
-        </form>
 
-        <div className="flex items-center gap-4 py-2">
-          <div className="h-px bg-white/5 flex-1" />
-          <span className="text-[9px] font-bold text-gray-700 uppercase tracking-widest">OR</span>
-          <div className="h-px bg-white/5 flex-1" />
-        </div>
+            <button 
+              type="submit" 
+              disabled={status === 'loading'}
+              className="w-full bg-[#FFBF00] hover:bg-amber-500 active:scale-[0.98] text-black py-3.5 rounded-2xl font-bold uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-2 shadow-md"
+            >
+              {status === 'loading' ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                isLogin ? 'Enter Arena' : 'Start Journey'
+              )}
+            </button>
+          </form>
 
-        <button 
-          onClick={handleGoogleAuth}
-          className="w-full bg-white/5 border border-white/10 py-4 rounded-2xl flex items-center justify-center gap-3 font-bold uppercase text-[10px] tracking-widest hover:bg-white/10 transition-all text-white"
-        >
-          <Image src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width={18} height={18} alt="Google" />
-          Google Account
-        </button>
+          {/* Separator line */}
+          <div className="flex items-center gap-3 py-1">
+            <div className="h-px bg-gray-200 flex-1" />
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">or continue with</span>
+            <div className="h-px bg-gray-200 flex-1" />
+          </div>
 
-        <p className="text-center text-[10px] font-bold text-gray-500 uppercase tracking-widest pt-4">
-          {isLogin ? "NEW COMPETITOR?" : "ALREADY A MEMBER?"}{' '}
+          {/* Google SSO */}
           <button 
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-brand-red hover:text-red-400 font-bold ml-1 transition-colors"
+            onClick={handleGoogleAuth}
+            className="w-full border border-gray-300 hover:border-gray-400 bg-white hover:bg-gray-50 py-3.5 rounded-2xl flex items-center justify-center gap-3 font-bold text-xs uppercase tracking-wider text-gray-700 shadow-sm transition-all active:scale-[0.98]"
           >
-            {isLogin ? 'JOIN NOW' : 'SIGN IN'}
+            <Image src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width={18} height={18} alt="Google" />
+            Google Account
           </button>
-        </p>
+
+          {/* Switch flow link */}
+          <p className="text-center text-xs font-semibold text-gray-500 pt-2">
+            {isLogin ? "New competitor?" : "Already a member?"}{' '}
+            <button 
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setStatus('idle');
+                setErrorMsg('');
+              }}
+              className="text-[#FFBF00] hover:text-amber-600 font-bold ml-1 transition-colors underline decoration-2 underline-offset-4"
+            >
+              {isLogin ? 'Join Now' : 'Sign In'}
+            </button>
+          </p>
+        </div>
       </motion.div>
     </div>
   );
