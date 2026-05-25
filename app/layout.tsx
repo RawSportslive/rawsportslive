@@ -58,6 +58,9 @@ export const metadata: Metadata = {
     description: 'Watch the latest WWE matches, highlights, RAW, SmackDown, NXT, and WrestleMania videos on RawSports Live.',
     images: ['/logo.png'],
   },
+  other: {
+    'google-adsense-account': 'ca-pub-2257245018050591'
+  },
 };
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
