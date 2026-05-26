@@ -13,6 +13,8 @@ import {
   ActivityIndicator,
   Platform,
   Animated,
+  useWindowDimensions,
+  StatusBar,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import YoutubePlayer from 'react-native-youtube-iframe';
@@ -98,90 +100,160 @@ interface PlayerModalProps {
 
 const PlayerModal: React.FC<PlayerModalProps> = ({ stream, onClose }) => {
   const [useWebView, setUseWebView] = useState(false);
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const isLandscape = windowWidth > windowHeight;
   const sportColor = stream ? (SPORT_COLORS[stream.sport as SportKey] ?? '#E50914') : '#E50914';
 
   useEffect(() => {
     setUseWebView(false); // Reset on each new video
-    const lock = async () => {
-      if (stream) {
-        try { await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE); } catch {}
-      } else {
-        try { await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP); } catch {}
-      }
+    
+    // Unlock to support both orientations while watching, lock to portrait up on close
+    const setupOrientation = async () => {
+      try {
+        await ScreenOrientation.unlockAsync();
+      } catch (e) {}
     };
-    lock();
+    setupOrientation();
+
+    return () => {
+      // When player closes, return phone orientation to standard portrait
+      const lockPortrait = async () => {
+        try {
+          await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+        } catch (e) {}
+      };
+      lockPortrait();
+    };
   }, [stream]);
 
   if (!stream) return null;
 
+  const playerWidth = windowWidth;
+  const playerHeight = isLandscape ? windowHeight : windowWidth * 0.5625;
+
   return (
     <Modal
       visible={!!stream}
-      animationType="slide"
+      animationType="fade"
       presentationStyle="fullScreen"
       onRequestClose={onClose}
       statusBarTranslucent
     >
       <View style={styles.modalContainer}>
-        {/* Close button */}
-        <TouchableOpacity style={[styles.closeBtn, { borderColor: sportColor }]} onPress={onClose} activeOpacity={0.85}>
-          <X color="#fff" size={14} />
-          <Text style={styles.closeBtnText}>CLOSE</Text>
-        </TouchableOpacity>
+        {/* Dynamic status bar visibility based on orientation */}
+        <StatusBar hidden={isLandscape} barStyle="light-content" backgroundColor="#000000" translucent={true} />
 
-        {/* Player */}
-        <View style={styles.playerArea}>
+        {/* Player Area takes full screen in Landscape with 0 margin */}
+        <View style={[
+          styles.playerArea, 
+          isLandscape ? { marginTop: 0, width: windowWidth, height: windowHeight } : { marginTop: Platform.OS === 'ios' ? 90 : 72 }
+        ]}>
           {useWebView ? (
             <WebView
-              style={{ width, height: width * 0.5625 }}
-              source={{ uri: `https://m.youtube.com/watch?v=${stream.videoId}` }}
+              style={{ width: playerWidth, height: playerHeight, backgroundColor: '#000000' }}
+              source={{ uri: `https://www.youtube.com/embed/${stream.videoId}?autoplay=1&modestbranding=1&rel=0&controls=1&fs=1` }}
               javaScriptEnabled
               domStorageEnabled
               allowsFullscreenVideo
               mediaPlaybackRequiresUserAction={false}
+              originWhitelist={['https://*.youtube.com', 'https://*.youtube-nocookie.com']}
+              onShouldStartLoadWithRequest={(request) => {
+                return request.url.includes('/embed/') || request.url.includes('youtube.com/generate_204') || request.url.includes('youtube-nocookie.com');
+              }}
+              startInLoadingState={true}
+              renderLoading={() => (
+                <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: '#000000', justifyContent: 'center', alignItems: 'center' }}>
+                  <ActivityIndicator size="large" color="#E50914" />
+                </View>
+              )}
             />
           ) : (
             <YoutubePlayer
-              height={width * 0.5625}
-              width={width}
+              height={playerHeight}
+              width={playerWidth}
               play
               videoId={stream.videoId}
               onError={() => setUseWebView(true)}
               onChangeState={(s: string) => { if (s === 'ended') onClose(); }}
+              onFullScreenChange={(status: boolean) => {
+                const handleFullscreenLock = async () => {
+                  try {
+                    if (status) {
+                      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+                    } else {
+                      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+                    }
+                  } catch (e) {
+                    console.log("YoutubePlayer fullscreen orientation lock error:", e);
+                  }
+                };
+                handleFullscreenLock();
+              }}
             />
+          )}
+
+          {/* Floating close button in Landscape mode */}
+          {isLandscape && (
+            <TouchableOpacity 
+              style={[
+                styles.closeBtn, 
+                { 
+                  position: 'absolute', 
+                  top: 20, 
+                  right: 20, 
+                  borderColor: sportColor, 
+                  backgroundColor: 'rgba(0,0,0,0.6)', 
+                  zIndex: 99999 
+                }
+              ]} 
+              onPress={onClose} 
+              activeOpacity={0.85}
+            >
+              <X color="#fff" size={14} />
+              <Text style={styles.closeBtnText}>CLOSE</Text>
+            </TouchableOpacity>
           )}
         </View>
 
-        {/* Video info */}
-        <ScrollView style={styles.videoInfoScroll} showsVerticalScrollIndicator={false}>
-          {/* Status badge */}
-          <View style={styles.videoStatusRow}>
-            {stream.status === 'live' ? <LiveBadge size="md" /> : <UpcomingBadge />}
-            <View style={[styles.sportChipModal, { borderColor: sportColor }]}>
-              <Text style={[styles.sportChipModalText, { color: sportColor }]}>
-                {stream.sport.toUpperCase()}
-              </Text>
-            </View>
-          </View>
+        {/* Video Info and standard close button shown only in Portrait mode */}
+        {!isLandscape && (
+          <>
+            <TouchableOpacity style={[styles.closeBtn, { borderColor: sportColor }]} onPress={onClose} activeOpacity={0.85}>
+              <X color="#fff" size={14} />
+              <Text style={styles.closeBtnText}>CLOSE</Text>
+            </TouchableOpacity>
 
-          <Text style={styles.videoTitle}>{stream.title}</Text>
+            <ScrollView style={styles.videoInfoScroll} showsVerticalScrollIndicator={false}>
+              {/* Status badge */}
+              <View style={styles.videoStatusRow}>
+                {stream.status === 'live' ? <LiveBadge size="md" /> : <UpcomingBadge />}
+                <View style={[styles.sportChipModal, { borderColor: sportColor }]}>
+                  <Text style={[styles.sportChipModalText, { color: sportColor }]}>
+                    {stream.sport.toUpperCase()}
+                  </Text>
+                </View>
+              </View>
 
-          {/* Channel + attribution */}
-          <View style={styles.channelRow}>
-            <View style={[styles.channelDot, { backgroundColor: sportColor }]} />
-            <Text style={[styles.channelNameModal, { color: sportColor }]}>{stream.channelName}</Text>
-          </View>
+              <Text style={styles.videoTitle}>{stream.title}</Text>
 
-          {/* Play Store compliance – source attribution */}
-          <View style={styles.attributionBox}>
-            <ShieldCheck color="#00C853" size={12} />
-            <Text style={styles.attributionText}>{stream.sourceLabel}</Text>
-          </View>
+              {/* Channel + attribution */}
+              <View style={styles.channelRow}>
+                <View style={[styles.channelDot, { backgroundColor: sportColor }]} />
+                <Text style={[styles.channelNameModal, { color: sportColor }]}>{stream.channelName}</Text>
+              </View>
 
-          {stream.description.length > 0 && (
-            <Text style={styles.videoDesc} numberOfLines={6}>{stream.description}</Text>
-          )}
-        </ScrollView>
+              {/* Play Store compliance – source attribution */}
+              <View style={styles.attributionBox}>
+                <ShieldCheck color="#00C853" size={12} />
+                <Text style={styles.attributionText}>{stream.sourceLabel}</Text>
+              </View>
+
+              {stream.description.length > 0 && (
+                <Text style={styles.videoDesc} numberOfLines={6}>{stream.description}</Text>
+              )}
+            </ScrollView>
+          </>
+        )}
       </View>
     </Modal>
   );

@@ -13,7 +13,9 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
-  Platform
+  Platform,
+  useWindowDimensions,
+  StatusBar
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { 
@@ -41,6 +43,11 @@ const { width, height } = Dimensions.get('window');
 const PAGE_SIZE = 6;
 
 export const VideoFeedScreen = () => {
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const isLandscape = windowWidth > windowHeight;
+  const playerWidth = windowWidth;
+  const playerHeight = isLandscape ? windowHeight : windowWidth * 0.5625;
+
   const [activeCategory, setActiveCategory] = useState('Latest');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
@@ -51,24 +58,23 @@ export const VideoFeedScreen = () => {
     setHasError(false);
   }, [selectedVideo]);
 
-  // Auto rotate to landscape when a video is selected (fullscreen), and portrait when closed
+  // Unlock orientation during playback so user can freely rotate, and lock back to portrait when video closes
   useEffect(() => {
-    async function changeOrientation() {
-      if (selectedVideo) {
-        try {
-          await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-        } catch (e) {
-          console.log("ScreenOrientation landscape lock error:", e);
-        }
-      } else {
+    const setupOrientation = async () => {
+      try {
+        await ScreenOrientation.unlockAsync();
+      } catch (e) {}
+    };
+    setupOrientation();
+
+    return () => {
+      const lockPortrait = async () => {
         try {
           await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
-        } catch (e) {
-          console.log("ScreenOrientation portrait lock error:", e);
-        }
-      }
-    }
-    changeOrientation();
+        } catch (e) {}
+      };
+      lockPortrait();
+    };
   }, [selectedVideo]);
   
   // Data states
@@ -327,57 +333,116 @@ export const VideoFeedScreen = () => {
       {/* Video Player Modal */}
       <Modal
         visible={!!selectedVideo}
-        animationType="slide"
+        animationType="fade"
         presentationStyle="fullScreen"
         onRequestClose={() => setSelectedVideo(null)}
         statusBarTranslucent={true}
       >
         <View style={styles.modalContainer}>
           {selectedVideo && (
-            <View style={styles.playerWrapper}>
-              {hasError ? (
-                <WebView
-                  style={{ height: width * 0.5625, width: width }}
-                  source={{ uri: `https://m.youtube.com/watch?v=${selectedVideo.videoId}` }}
-                  javaScriptEnabled={true}
-                  domStorageEnabled={true}
-                  allowsFullscreenVideo={true}
-                  mediaPlaybackRequiresUserAction={false}
-                />
-              ) : (
-                <YoutubePlayer
-                  height={width * 0.5625}
-                  width={width}
-                  play={true}
-                  videoId={selectedVideo.videoId}
-                  onChangeState={onStateChange}
-                  onError={(error: any) => {
-                    console.log("Youtube playback error, falling back to WebView:", error);
-                    setHasError(true);
-                  }}
-                />
-              )}
-              <ScrollView style={styles.modalInfo}>
-                <Text style={styles.modalTitle}>{selectedVideo.title}</Text>
-                <View style={styles.metaRow}>
-                  <Text style={styles.channelLabel}>WWE Official Channel</Text>
-                  <Text style={styles.metaDivider}>•</Text>
-                  <Text style={styles.dateLabel}>
-                    {new Date(selectedVideo.publishedAt).toLocaleDateString()}
-                  </Text>
-                </View>
-                <Text style={styles.modalDesc}>{selectedVideo.description}</Text>
-              </ScrollView>
-            </View>
+            <React.Fragment>
+              {/* Dynamic status bar visibility based on orientation */}
+              <StatusBar hidden={isLandscape} barStyle="light-content" backgroundColor="#000000" translucent={true} />
+
+              <View style={[
+                styles.playerWrapper,
+                isLandscape ? { marginTop: 0, width: windowWidth, height: windowHeight } : { marginTop: Platform.OS === 'ios' ? 108 : 88 }
+              ]}>
+                {hasError ? (
+                  <WebView
+                    style={{ height: playerHeight, width: playerWidth, backgroundColor: '#000000' }}
+                    source={{ uri: `https://www.youtube.com/embed/${selectedVideo.videoId}?autoplay=1&modestbranding=1&rel=0&controls=1&fs=1` }}
+                    javaScriptEnabled={true}
+                    domStorageEnabled={true}
+                    allowsFullscreenVideo={true}
+                    mediaPlaybackRequiresUserAction={false}
+                    originWhitelist={['https://*.youtube.com', 'https://*.youtube-nocookie.com']}
+                    onShouldStartLoadWithRequest={(request) => {
+                      return request.url.includes('/embed/') || request.url.includes('youtube.com/generate_204') || request.url.includes('youtube-nocookie.com');
+                    }}
+                    startInLoadingState={true}
+                    renderLoading={() => (
+                      <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: '#000000', justifyContent: 'center', alignItems: 'center' }}>
+                        <ActivityIndicator size="large" color="#E50914" />
+                      </View>
+                    )}
+                  />
+                ) : (
+                  <YoutubePlayer
+                    height={playerHeight}
+                    width={playerWidth}
+                    play={true}
+                    videoId={selectedVideo.videoId}
+                    onChangeState={onStateChange}
+                    onError={(error: any) => {
+                      console.log("Youtube playback error, falling back to WebView:", error);
+                      setHasError(true);
+                    }}
+                    onFullScreenChange={(status: boolean) => {
+                      const handleFullscreenLock = async () => {
+                        try {
+                          if (status) {
+                            await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+                          } else {
+                            await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+                          }
+                        } catch (e) {
+                          console.log("YoutubePlayer fullscreen orientation lock error:", e);
+                        }
+                      };
+                      handleFullscreenLock();
+                    }}
+                  />
+                )}
+
+                {/* Floating close button in Landscape mode */}
+                {isLandscape && (
+                  <TouchableOpacity 
+                    style={[
+                      styles.closeButton, 
+                      { 
+                        position: 'absolute', 
+                        top: 20, 
+                        right: 20, 
+                        backgroundColor: 'rgba(229, 9, 20, 0.8)', 
+                        zIndex: 99999 
+                      }
+                    ]} 
+                    onPress={() => setSelectedVideo(null)}
+                  >
+                    <X color="#fff" size={16} />
+                    <Text style={styles.closeButtonText}>CLOSE</Text>
+                  </TouchableOpacity>
+                )}
+
+                {/* Video Info shown only in Portrait mode */}
+                {!isLandscape && (
+                  <ScrollView style={styles.modalInfo}>
+                    <Text style={styles.modalTitle}>{selectedVideo.title}</Text>
+                    <View style={styles.metaRow}>
+                      <Text style={styles.channelLabel}>WWE Official Channel</Text>
+                      <Text style={styles.metaDivider}>•</Text>
+                      <Text style={styles.dateLabel}>
+                        {new Date(selectedVideo.publishedAt).toLocaleDateString()}
+                      </Text>
+                    </View>
+                    <Text style={styles.modalDesc}>{selectedVideo.description}</Text>
+                  </ScrollView>
+                )}
+              </View>
+            </React.Fragment>
           )}
 
-          <TouchableOpacity 
-            style={styles.closeButton}
-            onPress={() => setSelectedVideo(null)}
-          >
-            <X color="#fff" size={16} />
-            <Text style={styles.closeButtonText}>CLOSE</Text>
-          </TouchableOpacity>
+          {/* Standard Close button shown only in Portrait mode */}
+          {!isLandscape && (
+            <TouchableOpacity 
+              style={styles.closeButton}
+              onPress={() => setSelectedVideo(null)}
+            >
+              <X color="#fff" size={16} />
+              <Text style={styles.closeButtonText}>CLOSE</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </Modal>
     </View>

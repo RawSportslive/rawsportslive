@@ -10,6 +10,7 @@ import {
   Text,
   TouchableOpacity,
   Animated,
+  Easing,
 } from 'react-native';
 import { Zap, Calendar as CalIcon, Film, Radio } from 'lucide-react-native';
 
@@ -46,6 +47,13 @@ export default function App() {
 
   // Pulsing dot on LIVE tab
   const liveDotOpacity = useRef(new Animated.Value(1)).current;
+  
+  // Premium custom splash animations
+  const splashScale = useRef(new Animated.Value(0.85)).current;
+  const splashOpacity = useRef(new Animated.Value(0)).current;
+  const loaderProgress = useRef(new Animated.Value(0)).current;
+  const logoRotation = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
@@ -70,9 +78,48 @@ export default function App() {
     };
     registerForPushNotifications();
 
-    const timer = setTimeout(() => setIsSplashVisible(false), 2500);
+    // Start splash animation sequence
+    Animated.parallel([
+      Animated.timing(splashScale, {
+        toValue: 1,
+        duration: 900,
+        easing: Easing.out(Easing.back(1.2)),
+        useNativeDriver: true,
+      }),
+      Animated.timing(splashOpacity, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(loaderProgress, {
+        toValue: 1,
+        duration: 2200,
+        easing: Easing.bezier(0.4, 0, 0.2, 1),
+        useNativeDriver: true,
+      }),
+      Animated.loop(
+        Animated.timing(logoRotation, {
+          toValue: 1,
+          duration: 8000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        })
+      )
+    ]).start();
+
+    const timer = setTimeout(() => setIsSplashVisible(false), 2600);
     return () => clearTimeout(timer);
   }, []);
+
+  const loaderTranslateX = loaderProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-180, 0],
+  });
+
+  const rotationInterpolate = logoRotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
 
   const renderActiveScreen = () => {
     switch (activeTab) {
@@ -126,10 +173,54 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       {isSplashVisible ? (
         <View style={styles.splashContainer}>
-          <Text style={styles.splashText}>
-            RAW<Text style={styles.splashTextWhite}>SPORTS</Text>{' '}
-            <Text style={styles.splashTextSmall}>LIVE</Text>
-          </Text>
+          {/* Glowing stadium background rings */}
+          <View style={styles.glowRingContainer}>
+            <Animated.View style={[
+              styles.glowRing, 
+              { 
+                transform: [{ rotate: rotationInterpolate }] 
+              }
+            ]} />
+            <View style={styles.glowRingInner} />
+          </View>
+
+          <Animated.View style={[
+            styles.splashBrandContainer,
+            {
+              opacity: splashOpacity,
+              transform: [{ scale: splashScale }]
+            }
+          ]}>
+            {/* Minimalist Human-Designed Badge Icon */}
+            <View style={styles.logoBadge}>
+              <View style={styles.logoBadgeLine} />
+              <Zap color="#FFBF00" size={32} fill="#FFBF00" />
+            </View>
+
+            <Text style={styles.splashText}>
+              RAW<Text style={styles.splashTextWhite}>SPORTS</Text>
+            </Text>
+            
+            <View style={styles.taglineRow}>
+              <View style={styles.taglineLine} />
+              <Text style={styles.splashTagline}>LIVE STREAMING GATEWAY</Text>
+              <View style={styles.taglineLine} />
+            </View>
+
+            {/* Premium Loader Bar */}
+            <View style={styles.loaderContainer}>
+              <View style={styles.loaderTrack}>
+                <Animated.View style={[
+                  styles.loaderProgress,
+                  {
+                    transform: [{ translateX: loaderTranslateX }]
+                  }
+                ]} />
+              </View>
+            </View>
+
+            <Text style={styles.complianceText}>OFFICIAL PLAY STORE PRODUCTION BUILD</Text>
+          </Animated.View>
         </View>
       ) : (
         <View style={{ flex: 1, backgroundColor: '#050505' }}>
@@ -176,22 +267,101 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  glowRingContainer: {
+    position: 'absolute',
+    width: 280,
+    height: 280,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  glowRing: {
+    position: 'absolute',
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    borderWidth: 2,
+    borderColor: 'rgba(229, 9, 20, 0.15)',
+    borderStyle: 'dashed',
+  },
+  glowRingInner: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 191, 0, 0.08)',
+  },
+  splashBrandContainer: {
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  logoBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 8,
+  },
+  logoBadgeLine: {
+    width: 24,
+    height: 2,
+    backgroundColor: '#FFBF00',
+    borderRadius: 1,
+  },
   splashText: {
     color: '#FFBF00',
-    fontSize: 40,
+    fontSize: 44,
     fontWeight: '900',
     fontStyle: 'italic',
     letterSpacing: -1,
+    textTransform: 'uppercase',
   },
   splashTextWhite: {
     color: '#ffffff',
   },
-  splashTextSmall: {
-    color: '#E50914',
-    fontSize: 20,
+  taglineRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 6,
+  },
+  taglineLine: {
+    width: 10,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  splashTagline: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 8.5,
+    fontWeight: '900',
+    letterSpacing: 3,
+  },
+  loaderContainer: {
+    marginTop: 36,
+    alignItems: 'center',
+  },
+  loaderTrack: {
+    width: 180,
+    height: 3,
+    backgroundColor: '#151515',
+    borderRadius: 1.5,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  loaderProgress: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 180,
+    backgroundColor: '#E50914',
+    borderRadius: 1.5,
+  },
+  complianceText: {
+    color: '#333333',
+    fontSize: 8,
     fontWeight: 'bold',
-    fontStyle: 'normal',
-    lineHeight: 20,
+    letterSpacing: 1.5,
+    marginTop: 24,
   },
   tabBar: {
     flexDirection: 'row',

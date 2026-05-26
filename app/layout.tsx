@@ -78,11 +78,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         
         {/* Google AdSense Verification Script */}
-        <script 
-          async 
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2257245018050591" 
-          crossOrigin="anonymous" 
-        />
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2257245018050591" crossOrigin="anonymous"></script>
 
         {/* Bulletproof status bar filled red color */}
         <meta name="theme-color" content="#FFBF00" />

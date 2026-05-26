@@ -69,11 +69,9 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
     if (startAt > 0) {
       event.target.seekTo(startAt, true);
     }
-    if (playRequested && adFinished) {
+    if (playRequested) {
       event.target.playVideo();
       setIsPlaying(true);
-    } else if (playRequested && !adFinished) {
-      setAdShowing(true);
     }
   };
 
@@ -196,12 +194,6 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
   const startPlayback = () => {
     setHasStarted(true);
     setPlayRequested(true);
-    
-    // Ad Intercept
-    if (!adFinished) {
-      setAdShowing(true);
-      return;
-    }
 
     if (isYoutube && playerRef.current) {
       playerRef.current.playVideo();
@@ -650,62 +642,7 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
         )}
       </AnimatePresence>
 
-      {/* PRE-ROLL AD OVERLAY (Real Ad Slot) */}
-      <AnimatePresence>
-        {adShowing && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center pointer-events-auto"
-          >
-            {/* The REAL Ad Container */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-               <p className="text-white text-xs md:text-sm font-bold uppercase max-w-md mx-auto mb-6 tracking-wider text-gray-400">
-                 Advertisement
-               </p>
-               
-               {/* 
-                 YOUR REAL AD NETWORK TAG GOES HERE
-                 To earn real money, sign up for Adsterra, PropellerAds, or Google AdSense.
-                 Then paste the <script> or <iframe> code they give you inside this div!
-               */}
-               <div id="real-ad-slot-container" className="w-full max-w-md aspect-[21/9] bg-white/5 flex flex-col items-center justify-center border border-dashed border-white/20 rounded-2xl p-4">
-                  <span className="text-gray-500 font-bold uppercase text-[10px] tracking-widest text-center">
-                    REAL AD NETWORK SLOT
-                  </span>
-                  <p className="text-gray-600 text-[9px] uppercase mt-2 text-center">
-                    Paste your real Adsterra or Google AdSense script tag here to start earning money.
-                  </p>
-               </div>
-            </div>
 
-            {/* Top Right Skip Ad logic */}
-            <div className="absolute top-4 right-4 md:top-6 md:right-6 bg-black/80 backdrop-blur-md border border-white/10 rounded-full flex items-center overflow-hidden z-[110]">
-              {adTimeLeft > 0 ? (
-                <div className="px-5 py-3 flex items-center gap-3">
-                  <div className="w-4 h-4 border-[3px] border-brand-red border-t-transparent rounded-full animate-spin" />
-                  <span className="text-[10px] font-extrabold text-white uppercase tracking-widest">
-                    Stream plays in {adTimeLeft}s
-                  </span>
-                </div>
-              ) : (
-                <button 
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSkipAd(); }}
-                  className="px-6 py-3 bg-[#FFBF00] hover:bg-amber-500 text-black text-[11px] font-black uppercase tracking-widest transition-colors flex items-center gap-2 cursor-pointer"
-                >
-                  Skip Ad <SkipForward size={14} />
-                </button>
-              )}
-            </div>
-
-            {/* Ad Badge */}
-            <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 bg-white/10 border border-white/20 text-white text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 rounded">
-              Advertisement • In-Stream
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
