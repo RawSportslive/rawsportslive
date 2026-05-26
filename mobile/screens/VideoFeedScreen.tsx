@@ -37,7 +37,7 @@ import { CategoryTabs } from '../components/CategoryTabs';
 import { VideoCard } from '../components/VideoCard';
 import { SkeletonLoader } from '../components/SkeletonLoader';
 
-import * as ScreenOrientation from 'expo-screen-orientation';
+// ScreenOrientation removed — lockAsync causes Android Activity recreation (app refresh bug)
 
 const { width, height } = Dimensions.get('window');
 const PAGE_SIZE = 6;
@@ -58,24 +58,7 @@ export const VideoFeedScreen = () => {
     setHasError(false);
   }, [selectedVideo]);
 
-  // Unlock orientation during playback so user can freely rotate, and lock back to portrait when video closes
-  useEffect(() => {
-    const setupOrientation = async () => {
-      try {
-        await ScreenOrientation.unlockAsync();
-      } catch (e) {}
-    };
-    setupOrientation();
-
-    return () => {
-      const lockPortrait = async () => {
-        try {
-          await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
-        } catch (e) {}
-      };
-      lockPortrait();
-    };
-  }, [selectedVideo]);
+  // No orientation locking — lockAsync causes Android Activity recreation (app refresh)
   
   // Data states
   const [videos, setVideos] = useState<any[]>([]);
@@ -378,20 +361,7 @@ export const VideoFeedScreen = () => {
                       console.log("Youtube playback error, falling back to WebView:", error);
                       setHasError(true);
                     }}
-                    onFullScreenChange={(status: boolean) => {
-                      const handleFullscreenLock = async () => {
-                        try {
-                          if (status) {
-                            await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-                          } else {
-                            await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
-                          }
-                        } catch (e) {
-                          console.log("YoutubePlayer fullscreen orientation lock error:", e);
-                        }
-                      };
-                      handleFullscreenLock();
-                    }}
+                    // onFullScreenChange removed — ScreenOrientation.lockAsync restarts the app on Android
                   />
                 )}
 

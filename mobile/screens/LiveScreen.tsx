@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import YoutubePlayer from 'react-native-youtube-iframe';
-import * as ScreenOrientation from 'expo-screen-orientation';
+// ScreenOrientation removed — lockAsync causes Android Activity recreation (app refresh bug)
 import {
   Radio,
   Search,
@@ -106,24 +106,7 @@ const PlayerModal: React.FC<PlayerModalProps> = ({ stream, onClose }) => {
 
   useEffect(() => {
     setUseWebView(false); // Reset on each new video
-    
-    // Unlock to support both orientations while watching, lock to portrait up on close
-    const setupOrientation = async () => {
-      try {
-        await ScreenOrientation.unlockAsync();
-      } catch (e) {}
-    };
-    setupOrientation();
-
-    return () => {
-      // When player closes, return phone orientation to standard portrait
-      const lockPortrait = async () => {
-        try {
-          await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
-        } catch (e) {}
-      };
-      lockPortrait();
-    };
+    // No orientation locking — lockAsync causes Android Activity recreation (app refresh)
   }, [stream]);
 
   if (!stream) return null;
@@ -175,20 +158,7 @@ const PlayerModal: React.FC<PlayerModalProps> = ({ stream, onClose }) => {
               videoId={stream.videoId}
               onError={() => setUseWebView(true)}
               onChangeState={(s: string) => { if (s === 'ended') onClose(); }}
-              onFullScreenChange={(status: boolean) => {
-                const handleFullscreenLock = async () => {
-                  try {
-                    if (status) {
-                      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-                    } else {
-                      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
-                    }
-                  } catch (e) {
-                    console.log("YoutubePlayer fullscreen orientation lock error:", e);
-                  }
-                };
-                handleFullscreenLock();
-              }}
+              // onFullScreenChange removed — ScreenOrientation.lockAsync restarts the app on Android
             />
           )}
 
