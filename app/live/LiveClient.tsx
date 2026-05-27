@@ -1,16 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Radio, 
-  Search, 
-  RefreshCw, 
-  Clock, 
-  ShieldCheck, 
-  Play, 
-  X,
-  Tv
-} from 'lucide-react';
+import { Radio, Search, RefreshCw, Clock, ShieldCheck, Play, X, Tv } from 'lucide-react';
 
 interface LiveStream {
   videoId: string;
@@ -29,7 +20,6 @@ interface LiveStream {
   embedUrl: string;
 }
 
-// Curated high-end sports brand palette using theme gold (#FFBF00) as primary accent
 const SPORT_COLORS: Record<string, string> = {
   all: '#FFBF00',
   wrestling: '#FFBF00',
@@ -42,12 +32,12 @@ const SPORT_COLORS: Record<string, string> = {
   esports: '#8B5CF6',
 };
 
-export default function LiveClient({ 
-  initialLiveStreams, 
-  initialUpcomingStreams 
-}: { 
-  initialLiveStreams: LiveStream[], 
-  initialUpcomingStreams: LiveStream[] 
+export default function LiveClient({
+  initialLiveStreams,
+  initialUpcomingStreams,
+}: {
+  initialLiveStreams: LiveStream[];
+  initialUpcomingStreams: LiveStream[];
 }) {
   const [activeSport, setActiveSport] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -55,48 +45,38 @@ export default function LiveClient({
   const [upcomingStreams, setUpcomingStreams] = useState<LiveStream[]>(initialUpcomingStreams);
   const [isRefetching, setIsRefetching] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<LiveStream | null>(null);
-  const [apiError, setApiError] = useState<string | null>(null);
 
-  const fetchLiveHubData = async () => {
+  const fetchData = async () => {
     setIsRefetching(true);
-    setApiError(null);
     try {
       const [liveRes, upcomingRes] = await Promise.all([
         fetch(`/api/live/streams?sport=all`),
-        fetch(`/api/live/upcoming?sport=all`)
+        fetch(`/api/live/upcoming?sport=all`),
       ]);
-      
       const liveData = await liveRes.json();
       const upcomingData = await upcomingRes.json();
-      
-      if (liveRes.status === 429 || upcomingRes.status === 429) {
-        setApiError('YouTube API Quota Exceeded. Please update your API key in .env.local');
-      }
-
       setLiveStreams(liveData.streams || []);
       setUpcomingStreams(upcomingData.streams || []);
     } catch (err) {
-      console.error("Failed to fetch live hub data:", err);
+      console.error('Failed to fetch live hub data:', err);
     } finally {
       setIsRefetching(false);
     }
   };
 
   useEffect(() => {
-    fetchLiveHubData();
-    const interval = setInterval(() => fetchLiveHubData(), 15 * 60 * 1000); 
+    fetchData();
+    const interval = setInterval(fetchData, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
-  const combinedLiveStreams = liveStreams;
-
-  const filteredLive = combinedLiveStreams.filter(s => {
+  const filteredLive = liveStreams.filter((s) => {
     if (activeSport !== 'all' && s.sport !== activeSport) return false;
     if (searchQuery && !s.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
 
-  const filteredUpcoming = upcomingStreams.filter(s => {
+  const filteredUpcoming = upcomingStreams.filter((s) => {
     if (activeSport !== 'all' && s.sport !== activeSport) return false;
     if (searchQuery && !s.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
@@ -105,82 +85,66 @@ export default function LiveClient({
   const allSports = ['all', 'wrestling', 'football', 'cricket', 'basketball', 'ufc', 'f1', 'tennis', 'esports'];
 
   return (
-    <div className="min-h-screen pt-8 pb-24 font-sans w-full text-[#121212]" style={{ backgroundColor: '#faf9f6' }}>
-      
-      {/* Premium Elegant Header */}
-      <div className="w-full px-6 sm:px-8 lg:px-12 max-w-7xl mx-auto mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+    <div className="min-h-screen pt-8 pb-24 w-full" style={{ backgroundColor: '#faf9f6', color: '#121212' }}>
+
+      {/* ── Header ── */}
+      <div className="w-full px-4 sm:px-6 mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-[#121212] uppercase font-display select-none">
-            RAWSPORTS <span className="text-[#FFBF00] font-black">LIVE</span>
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight uppercase" style={{ color: '#121212' }}>
+            RAWSPORTS <span style={{ color: '#FFBF00' }}>LIVE</span>
           </h1>
-          <div className="flex items-center gap-2 mt-3">
+          <div className="flex items-center gap-2 mt-2">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FFBF00] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FFBF00]"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: '#FFBF00' }}></span>
+              <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: '#FFBF00' }}></span>
             </span>
-            <span className="text-[11px] text-neutral-500 font-bold uppercase tracking-wider">
-              {combinedLiveStreams.length} Broadcast{combinedLiveStreams.length !== 1 ? 's' : ''} Online
+            <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: '#888' }}>
+              {liveStreams.length} Broadcast{liveStreams.length !== 1 ? 's' : ''} Online
             </span>
           </div>
         </div>
 
-        <button 
-          onClick={fetchLiveHubData}
+        <button
+          onClick={fetchData}
           disabled={isRefetching}
-          className="flex items-center gap-2.5 px-4 py-2 rounded-xl border border-neutral-200/80 bg-white/90 shadow-sm hover:shadow hover:bg-white hover:border-neutral-300 transition-all text-xs font-bold text-neutral-700 disabled:opacity-50 active:scale-95 cursor-pointer"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl border text-xs font-bold disabled:opacity-50 cursor-pointer transition-all"
+          style={{ borderColor: '#e5e5e5', backgroundColor: '#fff', color: '#555' }}
         >
-          <RefreshCw size={13} className={`${isRefetching ? 'animate-spin text-[#FFBF00]' : 'text-neutral-500'}`} />
-          <span>Sync Hub</span>
+          <RefreshCw size={13} className={isRefetching ? 'animate-spin' : ''} style={{ color: isRefetching ? '#FFBF00' : '#888' }} />
+          Sync Hub
         </button>
       </div>
 
-      {apiError && (
-        <div className="w-full px-6 sm:px-8 lg:px-12 max-w-7xl mx-auto mb-8">
-          <div className="bg-red-50/50 border border-red-200/80 text-red-700 rounded-2xl p-4 flex items-center justify-between text-xs font-semibold shadow-sm backdrop-blur-sm">
-            <span className="flex items-center gap-2">⚠️ {apiError}</span>
-            <button onClick={() => setApiError(null)} className="opacity-60 hover:opacity-100 p-1 rounded-full hover:bg-red-100 transition-colors">
-              <X size={14} />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Modern Filter Toolbar */}
-      <div className="w-full px-6 sm:px-8 lg:px-12 max-w-7xl mx-auto mb-12">
-        <div className="flex flex-col md:flex-row gap-6 items-center justify-between border-b border-neutral-200/50 pb-6">
-          
-          {/* Curated Sport Tabs - Clean Sans Serif Typography */}
-          <div className="flex gap-2.5 overflow-x-auto w-full md:w-auto no-scrollbar py-1">
-            {allSports.map(sport => {
+      {/* ── Filter bar ── */}
+      <div className="w-full px-4 sm:px-6 mb-10">
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between border-b pb-5" style={{ borderColor: '#e5e5e5' }}>
+          <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 w-full md:w-auto">
+            {allSports.map((sport) => {
               const isActive = activeSport === sport;
-              const count = sport === 'all' 
-                ? combinedLiveStreams.length 
-                : combinedLiveStreams.filter(s => s.sport === sport).length;
+              const count = sport === 'all'
+                ? liveStreams.length
+                : liveStreams.filter((s) => s.sport === sport).length;
               const color = SPORT_COLORS[sport] || '#FFBF00';
-
               return (
                 <button
                   key={sport}
                   onClick={() => setActiveSport(sport)}
-                  className={`flex items-center gap-2.5 whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 border cursor-pointer ${
-                    isActive 
-                      ? 'bg-[#121212] border-[#121212] shadow-sm text-white' 
-                      : 'bg-white border-neutral-200 text-neutral-500 hover:border-neutral-300 hover:text-neutral-800'
-                  }`}
-                  style={isActive ? { color: '#ffffff' } : {}}
+                  className="flex items-center gap-2 whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border"
+                  style={isActive
+                    ? { backgroundColor: '#121212', borderColor: '#121212', color: '#fff' }
+                    : { backgroundColor: '#fff', borderColor: '#e5e5e5', color: '#777' }
+                  }
                 >
                   {sport !== 'all' && (
-                    <span 
-                      className="w-1.5 h-1.5 rounded-full shrink-0" 
-                      style={{ backgroundColor: color }}
-                    />
+                    <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
                   )}
-                  <span>{sport}</span>
+                  {sport}
                   {count > 0 && (
-                    <span 
-                      className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-black ${
-                        isActive ? 'bg-[#FFBF00] text-black font-extrabold' : 'bg-neutral-100 text-neutral-600'
-                      }`}
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-black"
+                      style={isActive
+                        ? { backgroundColor: '#FFBF00', color: '#000' }
+                        : { backgroundColor: '#f0f0f0', color: '#555' }
+                      }
                     >
                       {count}
                     </span>
@@ -190,247 +154,193 @@ export default function LiveClient({
             })}
           </div>
 
-          {/* Minimalist Search Input */}
-          <div className="relative w-full md:w-72 shrink-0">
-            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input 
+          <div className="relative w-full md:w-64 shrink-0">
+            <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: '#aaa' }} />
+            <input
               type="text"
               placeholder="Search live events..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white border border-neutral-200/80 shadow-sm rounded-full pl-10 pr-5 py-2.5 text-xs focus:outline-none focus:border-neutral-400 focus:ring-1 focus:ring-neutral-400 transition-all text-[#121212] placeholder-neutral-400 font-medium"
+              className="w-full rounded-full pl-9 pr-4 py-2 text-xs font-medium border focus:outline-none transition-all"
+              style={{ borderColor: '#e5e5e5', backgroundColor: '#fff', color: '#121212' }}
             />
           </div>
         </div>
       </div>
 
-      {/* Main Grid Area */}
-      <div className="w-full px-6 sm:px-8 lg:px-12 max-w-7xl mx-auto">
-        
-        {/* LIVE NOW SECTION */}
-        <div className="mb-16">
-          <div className="flex items-center gap-2.5 mb-8">
-            <div className="flex items-center gap-1.5 bg-[#FFBF00]/10 border border-[#FFBF00]/30 px-3 py-1 rounded-full">
-              <Radio size={14} className="text-[#FFBF00] animate-pulse shrink-0" />
-              <h2 className="text-xs font-black tracking-widest text-[#FFBF00] uppercase">LIVE NOW</h2>
-              <span className="text-[#FFBF00] text-xs font-black ml-1">
-                {filteredLive.length}
-              </span>
-            </div>
+      {/* ── LIVE NOW ── */}
+      <div className="w-full px-4 sm:px-6 mb-14">
+        <div className="flex items-center gap-2 mb-6">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full border" style={{ backgroundColor: 'rgba(255,191,0,0.08)', borderColor: 'rgba(255,191,0,0.3)' }}>
+            <Radio size={13} className="animate-pulse" style={{ color: '#FFBF00' }} />
+            <span className="text-xs font-black tracking-widest uppercase" style={{ color: '#FFBF00' }}>LIVE NOW</span>
+            <span className="text-xs font-black ml-0.5" style={{ color: '#FFBF00' }}>{filteredLive.length}</span>
           </div>
-
-          {filteredLive.length === 0 ? (
-            <div className="bg-white border border-neutral-200/50 shadow-sm rounded-3xl p-16 text-center w-full max-w-3xl mx-auto">
-              <div className="w-16 h-16 bg-neutral-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Tv size={24} className="text-neutral-300" />
-              </div>
-              <h3 className="text-lg font-bold mb-2 text-neutral-800 uppercase tracking-tight">No Streams Live Right Now</h3>
-              <p className="text-neutral-500 text-xs max-w-md mx-auto leading-relaxed font-medium">
-                All broadcast channels are currently off-air. You can explore upcoming matches below or search for specific channels using the search bar.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {filteredLive.map(stream => (
-                <LiveCard 
-                  key={stream.videoId} 
-                  stream={stream} 
-                  onClick={() => setSelectedVideo(stream)} 
-                />
-              ))}
-            </div>
-          )}
         </div>
 
-        {/* UPCOMING SECTION */}
-        {filteredUpcoming.length > 0 && (
-          <div className="mb-16">
-            <div className="flex items-center gap-2.5 mb-8">
-              <div className="flex items-center gap-1.5 bg-neutral-100 border border-neutral-200 px-3 py-1 rounded-full">
-                <Clock size={14} className="text-neutral-500 shrink-0" />
-                <h2 className="text-xs font-black tracking-widest text-neutral-600 uppercase">UPCOMING STREAMS</h2>
-                <span className="text-neutral-600 text-xs font-black ml-1">
-                  {filteredUpcoming.length}
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {filteredUpcoming.map(stream => (
-                <LiveCard 
-                  key={stream.videoId} 
-                  stream={stream} 
-                  onClick={() => setSelectedVideo(stream)} 
-                />
-              ))}
-            </div>
+        {filteredLive.length === 0 ? (
+          <div className="rounded-2xl p-12 text-center border" style={{ backgroundColor: '#fff', borderColor: '#e5e5e5' }}>
+            <Tv size={28} className="mx-auto mb-4" style={{ color: '#ccc' }} />
+            <h3 className="text-base font-bold mb-1 uppercase tracking-tight" style={{ color: '#333' }}>No Streams Live Right Now</h3>
+            <p className="text-xs leading-relaxed" style={{ color: '#999' }}>
+              All official channels are currently off-air. Check upcoming events below.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
+            {filteredLive.map((stream) => (
+              <LiveCard key={stream.videoId} stream={stream} onClick={() => setSelectedVideo(stream)} />
+            ))}
           </div>
         )}
+      </div>
 
-        {/* Premium Compliance Footnote */}
-        <div className="bg-white border border-neutral-200/50 rounded-2xl p-5 flex items-start gap-4 mt-20 max-w-4xl mx-auto shadow-sm">
-          <ShieldCheck size={20} className="text-emerald-600 shrink-0 mt-0.5" />
-          <p className="text-neutral-500 text-xs font-semibold leading-relaxed">
-            Legal & Terms Compliant: All live streams are embedded directly from official verified YouTube channels using YouTube's standard HTML5 frame interface. We do not restream, host, or capture any media content locally.
+      {/* ── UPCOMING ── */}
+      {filteredUpcoming.length > 0 && (
+        <div className="w-full px-4 sm:px-6 mb-14">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full border" style={{ backgroundColor: '#f5f5f5', borderColor: '#e5e5e5' }}>
+              <Clock size={13} style={{ color: '#888' }} />
+              <span className="text-xs font-black tracking-widest uppercase" style={{ color: '#666' }}>UPCOMING STREAMS</span>
+              <span className="text-xs font-black" style={{ color: '#666' }}>{filteredUpcoming.length}</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
+            {filteredUpcoming.map((stream) => (
+              <LiveCard key={stream.videoId} stream={stream} onClick={() => setSelectedVideo(stream)} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Footer note ── */}
+      <div className="w-full px-4 sm:px-6 mt-16">
+        <div className="rounded-2xl p-4 flex items-start gap-3 border" style={{ backgroundColor: '#fff', borderColor: '#e5e5e5' }}>
+          <ShieldCheck size={18} className="shrink-0 mt-0.5" style={{ color: '#10B981' }} />
+          <p className="text-xs font-semibold leading-relaxed" style={{ color: '#888' }}>
+            All streams are embedded directly from official verified YouTube channels. We do not host, download, or restream any content.
           </p>
         </div>
       </div>
 
-      {/* Video Player Modal */}
+      {/* ── Video Modal ── */}
       {selectedVideo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 md:p-8">
-          
-          <div className="w-full max-w-5xl bg-white rounded-3xl overflow-hidden border border-neutral-200 shadow-2xl flex flex-col max-h-[92vh] relative">
-            
-            {/* Close Button floating over the player */}
-            <button 
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
+          style={{ backgroundColor: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(12px)' }}
+        >
+          <div className="w-full max-w-5xl rounded-2xl overflow-hidden flex flex-col" style={{ backgroundColor: '#fff', maxHeight: '92vh', border: '1px solid #e5e5e5' }}>
+
+            <button
               onClick={() => setSelectedVideo(null)}
-              className="absolute top-4 right-4 bg-black/70 hover:bg-black/90 border border-white/10 shadow-lg p-2.5 rounded-full transition-all z-50 group cursor-pointer"
+              className="absolute top-5 right-5 z-50 p-2.5 rounded-full transition-all cursor-pointer"
+              style={{ backgroundColor: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255,255,255,0.1)' }}
             >
-              <X size={18} className="text-white group-hover:rotate-90 transition-transform duration-300" style={{ color: '#ffffff !important' }} />
+              <X size={18} color="#fff" />
             </button>
-            
-            {/* Player Area (16:9) */}
-            <div className="relative w-full aspect-video bg-black shrink-0">
+
+            {/* Player — uses live_stream embed to always show current live, no quota */}
+            <div className="relative w-full shrink-0" style={{ paddingBottom: '56.25%' }}>
               <iframe
-                src={`https://www.youtube.com/embed/${selectedVideo.videoId}?autoplay=1`}
+                src={`https://www.youtube.com/embed/live_stream?channel=${selectedVideo.channelId}&autoplay=1`}
                 title={selectedVideo.title}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 className="absolute inset-0 w-full h-full border-0"
               />
             </div>
-            
-            {/* Info Area */}
-            <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar bg-white">
-              <div className="flex flex-wrap items-center gap-2.5 mb-4">
-                {selectedVideo.status === 'live' ? (
-                  <div className="flex items-center gap-1.5 bg-[#FFBF00] px-3 py-1 rounded-full text-[9px] font-black tracking-widest text-black">
-                    <span className="w-1.5 h-1.5 bg-black rounded-full animate-pulse" />
-                    <span>LIVE NOW</span>
-                  </div>
-                ) : (
-                  <div className="bg-neutral-100 border border-neutral-200 px-3 py-1 rounded-full text-[9px] font-bold tracking-widest text-neutral-500">
-                    <span>UPCOMING MATCH</span>
-                  </div>
-                )}
-                
-                <div 
-                  className="border px-3 py-1 rounded-full text-[9px] font-bold tracking-widest uppercase flex items-center gap-1.5"
-                  style={{ 
-                    borderColor: SPORT_COLORS[selectedVideo.sport] || '#666',
-                    color: SPORT_COLORS[selectedVideo.sport] || '#666',
-                    backgroundColor: `${SPORT_COLORS[selectedVideo.sport]}0A` || '#f9fafb'
-                  }}
-                >
-                  <span className="w-1 h-1 rounded-full" style={{ backgroundColor: SPORT_COLORS[selectedVideo.sport] || '#666' }} />
+
+            {/* Info */}
+            <div className="p-5 overflow-y-auto" style={{ backgroundColor: '#fff' }}>
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black tracking-widest"
+                  style={{ backgroundColor: '#FFBF00', color: '#000' }}>
+                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: '#000' }} />
+                  LIVE NOW
+                </div>
+                <div className="px-2.5 py-1 rounded-full text-[9px] font-bold tracking-widest border uppercase"
+                  style={{ borderColor: SPORT_COLORS[selectedVideo.sport], color: SPORT_COLORS[selectedVideo.sport], backgroundColor: `${SPORT_COLORS[selectedVideo.sport]}12` }}>
                   {selectedVideo.sport}
                 </div>
               </div>
-              
-              <h2 className="text-xl md:text-2xl font-extrabold leading-tight mb-4 text-[#121212] uppercase tracking-tight">
-                {selectedVideo.title}
-              </h2>
-              
-              <div className="flex items-center gap-3.5 mb-6 pb-5 border-b border-neutral-100">
-                <div className="flex items-center gap-2">
-                  <div 
-                    className="w-2.5 h-2.5 rounded-full" 
-                    style={{ backgroundColor: SPORT_COLORS[selectedVideo.sport] || '#FFBF00' }} 
-                  />
-                  <span className="font-extrabold text-xs tracking-wider uppercase text-neutral-700">
-                    {selectedVideo.channelName}
-                  </span>
-                </div>
-                <span className="text-neutral-300 text-xs">•</span>
-                <span className="text-neutral-500 text-xs font-semibold">
-                  {selectedVideo.sourceLabel}
-                </span>
-              </div>
-              
-              {selectedVideo.description && (
-                <div>
-                  <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2.5">Broadcast Details</h4>
-                  <p className="text-neutral-600 text-xs leading-relaxed whitespace-pre-wrap font-medium">
-                    {selectedVideo.description}
-                  </p>
-                </div>
-              )}
+              <h2 className="text-lg font-black uppercase tracking-tight mb-2" style={{ color: '#121212' }}>{selectedVideo.title}</h2>
+              <p className="text-xs font-bold uppercase tracking-wider" style={{ color: '#888' }}>{selectedVideo.channelName}</p>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Sub-components
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Sub-components ──────────────────────────────────────────────────────────
 
-function LiveCard({ stream, onClick }: { stream: LiveStream, onClick: () => void }) {
+function LiveCard({ stream, onClick }: { stream: LiveStream; onClick: () => void }) {
   const isLive = stream.status === 'live';
-  const isUpcoming = stream.status === 'upcoming';
   const color = SPORT_COLORS[stream.sport] || '#FFBF00';
 
   return (
-    <div 
+    <div
       onClick={onClick}
-      className="group bg-white rounded-2xl overflow-hidden border border-neutral-200/60 shadow-sm hover:border-neutral-300 hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col h-full"
+      className="group rounded-2xl overflow-hidden flex flex-col cursor-pointer transition-all duration-300"
+      style={{ backgroundColor: '#fff', border: '1px solid #e8e8e8', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 20px rgba(0,0,0,0.1)'; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = '0 1px 4px rgba(0,0,0,0.04)'; }}
     >
       {/* Thumbnail */}
-      <div className="relative aspect-video bg-neutral-900 overflow-hidden shrink-0">
+      <div className="relative overflow-hidden shrink-0" style={{ aspectRatio: '16/9', backgroundColor: '#111' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img 
-          src={stream.thumbnail} 
+        <img
+          src={stream.thumbnail}
           alt={stream.title}
-          className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+          onError={(e) => {
+            // Fallback to hqdefault if maxresdefault fails
+            const target = e.target as HTMLImageElement;
+            target.src = `https://img.youtube.com/vi/${stream.videoId}/hqdefault.jpg`;
+          }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)' }} />
+
+        {/* Top color bar */}
+        <div className="absolute top-0 left-0 right-0 h-0.5" style={{ backgroundColor: color }} />
+
         {/* Badge */}
-        <div className="absolute top-4 left-4">
+        <div className="absolute top-3 left-3">
           {isLive ? (
-            <div className="flex items-center gap-1.5 bg-[#FFBF00] px-2.5 py-1 rounded shadow-sm text-black font-black text-[9px] tracking-wider">
-              <div className="w-1.5 h-1.5 bg-black rounded-full animate-pulse" />
-              <span>LIVE</span>
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-black tracking-wider" style={{ backgroundColor: '#FFBF00', color: '#000' }}>
+              <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: '#000' }} />
+              LIVE
             </div>
           ) : (
-            <div className="bg-neutral-900/90 border border-neutral-700/80 px-2.5 py-1 rounded shadow-sm text-white font-bold text-[9px] tracking-wider">
-              <span>UPCOMING</span>
+            <div className="px-2 py-0.5 rounded text-[9px] font-bold tracking-wider border" style={{ backgroundColor: 'rgba(0,0,0,0.85)', borderColor: 'rgba(255,255,255,0.2)', color: '#fff' }}>
+              UPCOMING
             </div>
           )}
         </div>
 
-        {/* Play Icon on hover */}
+        {/* Play hover */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="w-11 h-11 rounded-full bg-white/95 flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform duration-300">
-            <Play size={16} className="text-neutral-900 ml-0.5 fill-neutral-900" />
+          <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.95)', boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}>
+            <Play size={16} fill="#111" color="#111" className="ml-0.5" />
           </div>
         </div>
       </div>
 
       {/* Info */}
-      <div className="p-5 flex flex-col flex-1">
-        
-        {/* Category tag */}
-        <div className="flex items-center gap-1.5 mb-2.5">
+      <div className="p-4 flex flex-col flex-1">
+        <div className="flex items-center gap-1.5 mb-2">
           <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
-          <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
-            {stream.sport}
-          </span>
+          <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#aaa' }}>{stream.sport}</span>
         </div>
-
-        <h3 className="text-xs font-bold text-neutral-800 line-clamp-2 mb-4 leading-snug group-hover:text-[#FFBF00] transition-colors uppercase tracking-tight">
+        <h3 className="text-xs font-bold line-clamp-2 mb-3 leading-snug uppercase tracking-tight transition-colors" style={{ color: '#222' }}>
           {stream.title}
         </h3>
-        
-        <div className="mt-auto pt-3.5 border-t border-neutral-100 flex items-center justify-between">
-          <span className="text-[10px] font-black tracking-wider uppercase text-neutral-500 truncate max-w-[130px]">
+        <div className="mt-auto pt-3 border-t flex items-center justify-between" style={{ borderColor: '#f0f0f0' }}>
+          <span className="text-[10px] font-black tracking-wider uppercase truncate max-w-[120px]" style={{ color: '#999' }}>
             {stream.channelName}
           </span>
-          {isUpcoming && stream.scheduledStartTime && (
+          {stream.status === 'upcoming' && stream.scheduledStartTime && (
             <WebCountdown targetIso={stream.scheduledStartTime} />
           )}
         </div>
@@ -444,43 +354,25 @@ function WebCountdown({ targetIso }: { targetIso: string }) {
 
   useEffect(() => {
     const target = new Date(targetIso).getTime();
-
     const tick = () => {
-      const now = Date.now();
-      const diff = target - now;
-
-      if (diff <= 0) {
-        setTimeLeft('STARTING');
-        return;
-      }
-
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-      const pad = (n: number) => String(n).padStart(2, '0');
-
-      if (days > 0) {
-        setTimeLeft(`${days}d ${pad(hours)}h`);
-      } else {
-        setTimeLeft(`${pad(hours)}:${pad(minutes)}:${pad(seconds)}`);
-      }
+      const diff = target - Date.now();
+      if (diff <= 0) { setTimeLeft('STARTING'); return; }
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      const p = (n: number) => String(n).padStart(2, '0');
+      setTimeLeft(d > 0 ? `${d}d ${p(h)}h` : `${p(h)}:${p(m)}:${p(s)}`);
     };
-
     tick();
-    const interval = setInterval(tick, 1000);
-    return () => clearInterval(interval);
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
   }, [targetIso]);
 
   if (!timeLeft) return null;
-  const isImminent = timeLeft === 'STARTING';
-
   return (
-    <div className="inline-flex items-center gap-1">
-      <span className="text-[9px] font-black tracking-widest text-[#FFBF00] bg-[#FFBF00]/10 px-2 py-0.5 rounded border border-[#FFBF00]/20 tabular-nums">
-        {timeLeft}
-      </span>
-    </div>
+    <span className="text-[9px] font-black tabular-nums px-2 py-0.5 rounded border" style={{ color: '#FFBF00', backgroundColor: 'rgba(255,191,0,0.08)', borderColor: 'rgba(255,191,0,0.25)' }}>
+      {timeLeft}
+    </span>
   );
 }

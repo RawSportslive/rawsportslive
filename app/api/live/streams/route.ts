@@ -6,54 +6,78 @@ interface CacheEntry {
   timestamp: number;
 }
 let cache: CacheEntry | null = null;
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 min cache — fast refresh for real live events
+// 5 min cache — fast refresh for real live events
+const CACHE_TTL_MS = 5 * 60 * 1000;
 
-async function fetchLiveStreamsForChannel(
+// ─────────────────────────────────────────────────────────────────────────────
+// Scraper: detects real live streams from public YouTube channel page.
+// Uses ZERO API quota. Picks up marathon/continuous streams the API misses.
+// ─────────────────────────────────────────────────────────────────────────────
+async function scrapeLiveStreamForChannel(
   channelId: string,
   channelName: string,
-  sport: string,
-  apiKey: string
+  sport: string
 ): Promise<LiveStream[]> {
-  const url = new URL('https://www.googleapis.com/youtube/v3/search');
-  url.searchParams.set('part', 'snippet');
-  url.searchParams.set('channelId', channelId);
-  url.searchParams.set('eventType', 'live');
-  url.searchParams.set('type', 'video');
-  url.searchParams.set('maxResults', '5');
-  url.searchParams.set('key', apiKey);
+  try {
+    const url = `https://www.youtube.com/channel/${channelId}/live`;
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+      cache: 'no-store',
+    });
 
-  const res = await fetch(url.toString(), { cache: 'no-store' });
-  if (!res.ok) {
-    const errJson = await res.json().catch(() => ({}));
-    const errorMessage = errJson?.error?.message || 'Unknown YouTube API error';
-    const reason = errJson?.error?.errors?.[0]?.reason ?? '';
-    throw new Error(`YOUTUBE_API_FAILED: ${errorMessage} (${reason})`);
+    if (!res.ok) return [];
+    const html = await res.text();
+
+    // Must have a live broadcast signal in the page
+    const isReallyLive =
+      html.includes('"isLive":true') ||
+      html.includes('"LIVE_STREAM_OFFLINE"') === false && (
+        html.includes('LIVE_STARTED') ||
+        html.includes('"liveStreamability"')
+      );
+
+    // Extract videoId — first match on the page
+    const videoIdMatch = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
+    if (!videoIdMatch || !isReallyLive) return [];
+
+    const videoId = videoIdMatch[1];
+
+    // Extract title
+    const titleMatch =
+      html.match(/"title":\{"runs":\[\{"text":"([^"]+)"\}/) ||
+      html.match(/"title":"([^"]+)"/);
+    let title = titleMatch ? titleMatch[1] : `${channelName} Live`;
+    // Decode common unicode escapes
+    title = title
+      .replace(/\\u0026/g, '&')
+      .replace(/\\u003c/g, '<')
+      .replace(/\\u003e/g, '>')
+      .replace(/\\"/g, '"');
+
+    return [
+      {
+        videoId,
+        title,
+        channelId,
+        channelName,
+        sport,
+        thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+        status: 'live' as const,
+        description: `Live broadcast from ${channelName}`,
+        publishedAt: new Date().toISOString(),
+        actualStartTime: new Date().toISOString(),
+        sourceLabel: `© ${channelName} — Official YouTube Channel`,
+        // Direct channel embed — works even without videoId, zero API quota
+        embedUrl: `https://www.youtube.com/embed/live_stream?channel=${channelId}&autoplay=1`,
+      },
+    ];
+  } catch {
+    return [];
   }
-
-  const json = await res.json();
-  const items = json.items ?? [];
-
-  return items.map((item: any) => {
-    const videoId = item.id?.videoId ?? '';
-    return {
-      videoId,
-      title: item.snippet?.title ?? '',
-      channelId,
-      channelName,
-      sport,
-      thumbnail:
-        item.snippet?.thumbnails?.maxres?.url ||
-        item.snippet?.thumbnails?.high?.url ||
-        item.snippet?.thumbnails?.medium?.url ||
-        `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
-      status: 'live' as const,
-      description: item.snippet?.description ?? '',
-      publishedAt: item.snippet?.publishedAt ?? new Date().toISOString(),
-      actualStartTime: item.snippet?.publishedAt,
-      sourceLabel: `© ${channelName} — Official YouTube Channel`,
-      embedUrl: `https://www.youtube.com/embed/${videoId}?autoplay=1`,
-    };
-  });
 }
 
 export async function GET(request: Request) {
@@ -62,14 +86,10 @@ export async function GET(request: Request) {
     const sport = searchParams.get('sport') || 'all';
     const forceRefresh = searchParams.get('refresh') === '1';
 
-    const apiKey = process.env.YOUTUBE_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json({ error: 'YouTube API key not configured' }, { status: 500 });
-    }
-
     // Return cached data if still fresh
     if (!forceRefresh && cache && Date.now() - cache.timestamp < CACHE_TTL_MS) {
-      const filtered = sport === 'all' ? cache.data : cache.data.filter((s) => s.sport === sport);
+      const filtered =
+        sport === 'all' ? cache.data : cache.data.filter((s) => s.sport === sport);
       return NextResponse.json({
         streams: filtered,
         cached: true,
@@ -78,30 +98,23 @@ export async function GET(request: Request) {
       });
     }
 
-    const channelsToQuery = sport === 'all'
-      ? ALL_CHANNELS
-      : (OFFICIAL_CHANNELS[sport] ?? ALL_CHANNELS);
+    const channelsToQuery =
+      sport === 'all' ? ALL_CHANNELS : OFFICIAL_CHANNELS[sport] ?? ALL_CHANNELS;
 
+    // Scrape all channels concurrently — no API quota used
     const results = await Promise.allSettled(
-      channelsToQuery.map((ch) => fetchLiveStreamsForChannel(ch.id, ch.name, ch.sport, apiKey))
+      channelsToQuery.map((ch) =>
+        scrapeLiveStreamForChannel(ch.id, ch.name, ch.sport)
+      )
     );
 
     const streams: LiveStream[] = [];
-    const errors: string[] = [];
-
     for (const r of results) {
-      if (r.status === 'fulfilled') {
-        streams.push(...r.value);
-      } else {
-        const msg = r.reason?.message || 'Unknown';
-        errors.push(msg);
-        console.error('[live/streams] Channel fetch error:', msg);
-      }
+      if (r.status === 'fulfilled') streams.push(...r.value);
     }
 
     const validStreams = streams.filter((s) => s.videoId);
 
-    // Update cache only for "all" queries
     if (sport === 'all') {
       cache = { data: validStreams, timestamp: Date.now() };
     }
@@ -111,8 +124,7 @@ export async function GET(request: Request) {
       cached: false,
       fetchedAt: new Date().toISOString(),
       totalLive: validStreams.length,
-      method: 'youtube_api',
-      ...(errors.length > 0 && { errors }),
+      method: 'scraper_no_quota',
     });
   } catch (error) {
     console.error('[live/streams] Error:', error);
