@@ -4,29 +4,56 @@ This guide contains everything you need to know to build, update, and release ne
 
 ---
 
-## 🔑 1. How to View & Download Your Keystore Credentials
-Expo automatically manages and signs your builds in the cloud. If you ever need to view your keystore passwords or download the signing keystore file for manual builds:
+## 🔑 1. Android Keystore (.jks) and Credentials
 
-### Option A: Via Terminal (Fastest)
-1. Open your terminal inside the `mobile/` directory.
-2. Run:
-   ```bash
-   eas credentials
-   ```
-3. Select **Android** ➜ Select **production**.
-4. The terminal will display:
-   *   **Keystore Alias**
-   *   **Keystore Password**
-   *   **Key Password**
-   *   An option to download the `.jks` keystore file directly.
+### 🛡️ What is a `.jks` file?
+A `.jks` (Java KeyStore) file is an encrypted security file that acts as your developer digital signature. It contains:
+1.  **The Private Signing Key:** Used to sign your app's code. It proves to Android and Google Play that the app actually came from you.
+2.  **The Public Certificate:** Used by Google Play to verify your signature when you upload updates.
 
-### Option B: Via Expo Dashboard (Web Browser)
-1. Go to the [EAS Project Credentials Dashboard](https://expo.dev/accounts/rawsportslive/projects/rawsports-live/credentials).
-2. Under **Application Signatures** or **Credentials**, you can view all passwords and download the keystore file.
+> [!IMPORTANT]
+> **Never lose this file or its passwords!** If you lose them, Google Play Store will reject any future updates you upload for the app. Keep them safe and do not commit the downloaded `.jks` file to your Git repository.
 
 ---
 
-## 🔄 2. How to Update the App to a New Version
+## 🔐 2. How to View Passwords & Download the Keystore File
+
+Expo automatically manages and signs your builds in the cloud. If you ever need to view your keystore passwords or download the signing keystore file:
+
+### Known Credentials Details
+*   **Key Alias:** `35ce299beb03f6683332a3b29e524671`
+*   **Keystore Type:** `JKS`
+
+### Option A: Via Terminal (Displays Passwords in Plain Text)
+Since Expo hides credentials on the web dashboard for security, running the interactive CLI in your terminal is the only way to view the plain-text passwords:
+
+1.  Open your terminal on your computer.
+2.  Navigate to the `mobile/` directory:
+    ```bash
+    cd c:\Users\bishal\Desktop\rawsportslive\mobile
+    ```
+3.  Run the credentials command:
+    ```bash
+    eas credentials
+    ```
+4.  Select **Android** ➜ Select **production** (or `com.rawsportslive.app`).
+5.  The terminal will display:
+    *   **Keystore Alias**
+    *   **Keystore Password**
+    *   **Key Password**
+    *   An option to download the `.jks` keystore file directly.
+
+### Option B: Via Expo Dashboard (Web Browser)
+You can download the keystore file directly from the Expo web dashboard:
+
+1.  Go to the [EAS Android Credentials Dashboard](https://expo.dev/accounts/rawsportslive/projects/rawsports-live/credentials/android/com.rawsportslive.app).
+2.  Locate the **Android upload keystore** section.
+3.  On the right side of the row, click the **three dots options button (`...`)**.
+4.  Click **Download keystore** to save the `.jks` file to your computer.
+
+---
+
+## 🔄 3. How to Update the App to a New Version
 When you make changes to the app code and want to push an update to your users or Google Play Store:
 
 1. Open `mobile/app.json`.
@@ -46,7 +73,7 @@ When you make changes to the app code and want to push an update to your users o
 
 ---
 
-## 📦 3. How to Compile the App
+## 📦 4. How to Compile the App
 
 Open your terminal in the `mobile/` directory and run the appropriate build command.
 
