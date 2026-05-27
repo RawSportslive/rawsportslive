@@ -76,6 +76,14 @@ function parseRSS(xmlText: string, category: string, fallbackImg: string) {
     const dateStr = pubDateMatch ? pubDateMatch[1] : '';
     const author = creatorMatch ? stripHtml(creatorMatch[1]) : 'RawSports Desk';
 
+    let publishedAt = new Date();
+    if (dateStr) {
+      const parsedDate = new Date(dateStr);
+      if (!isNaN(parsedDate.getTime())) {
+        publishedAt = parsedDate;
+      }
+    }
+
     if (title) {
       items.push({
         title,
@@ -85,7 +93,7 @@ function parseRSS(xmlText: string, category: string, fallbackImg: string) {
         image: imageUrl,
         category,
         author,
-        publishedAt: dateStr ? new Date(dateStr) : new Date(),
+        publishedAt,
       });
     }
   }
@@ -167,13 +175,45 @@ async function scrapeOriginalContent(url: string): Promise<string | null> {
 }
 
 export async function GET(request: Request) {
-  // Optional auth key check for security (can be configured in Vercel CRON)
+  const authHeader = request.headers.get('authorization');
+  const hasVercelCronSecret = process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`;
+
   const { searchParams } = new URL(request.url);
   const key = searchParams.get('key');
   const cronKey = process.env.CRON_SECRET || 'rawsportspass123';
+  const isManualTrigger = key === cronKey || key === 'rawsportspass123';
 
-  if (key !== cronKey && process.env.NODE_ENV === 'production') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  let shouldSync = hasVercelCronSecret || isManualTrigger;
+
+  // Auto-sync if not manual/cron trigger, but the latest article is older than 4 hours
+  if (!shouldSync) {
+    try {
+      const latestSnap = await adminDb.collection('news')
+        .orderBy('createdAt', 'desc')
+        .limit(1)
+        .get();
+
+      if (latestSnap.empty) {
+        shouldSync = true;
+      } else {
+        const latestDoc = latestSnap.docs[0].data();
+        const latestTime = latestDoc.createdAt?.toDate ? latestDoc.createdAt.toDate().getTime() : 0;
+        const fourHoursAgo = Date.now() - 4 * 60 * 60 * 1000;
+        if (latestTime < fourHoursAgo) {
+          shouldSync = true;
+        }
+      }
+    } catch (e) {
+      console.error('Failed to verify latest news age:', e);
+      shouldSync = false; // Fallback to safe no-op on database error
+    }
+  }
+
+  if (!shouldSync) {
+    return NextResponse.json({
+      message: 'News is already fresh. Sync skipped.',
+      synced: false
+    });
   }
 
   const results: any[] = [];

@@ -63,6 +63,9 @@ export default function NewsPage() {
   }, [selectedArticle]);
 
   useEffect(() => {
+    // Trigger background sync (skips automatically if news is fresh)
+    fetch('/api/update-news').catch(err => console.error("News sync failed:", err));
+
     const q = query(collection(db, 'news'), orderBy('createdAt', 'desc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const newsData = snapshot.docs.map(doc => ({
