@@ -15,6 +15,7 @@ import {
   Animated,
   useWindowDimensions,
   StatusBar,
+  Linking,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import YoutubePlayer from 'react-native-youtube-iframe';
@@ -266,6 +267,18 @@ export const LiveScreen: React.FC = () => {
   const displayLive = showAllLive ? filteredLive : filteredLive.slice(0, 4);
   const displayUpcoming = showAllUpcoming ? filteredUpcoming : filteredUpcoming.slice(0, 5);
 
+  const handleStreamPress = (stream: LiveStream) => {
+    if (stream.embedBlocked) {
+      const url = `https://www.youtube.com/channel/${stream.channelId}/live`;
+      Linking.openURL(url).catch((err) => {
+        console.error("Failed to open YouTube URL:", err);
+        Linking.openURL(`https://www.youtube.com/watch?v=${stream.videoId}`);
+      });
+    } else {
+      setSelectedStream(stream);
+    }
+  };
+
   // Ticker animation for "LIVE NOW" count in header
   const tickerAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -320,7 +333,7 @@ export const LiveScreen: React.FC = () => {
           snapToInterval={width * 0.82 + 14}
         >
           {trending.slice(0, 6).map((s) => (
-            <LiveStreamCard key={s.videoId} stream={s} onPress={setSelectedStream} variant="featured" />
+            <LiveStreamCard key={s.videoId} stream={s} onPress={handleStreamPress} variant="featured" />
           ))}
         </ScrollView>
       </View>
@@ -344,7 +357,7 @@ export const LiveScreen: React.FC = () => {
         />
       ) : (
         displayLive.map((s) => (
-          <LiveStreamCard key={s.videoId} stream={s} onPress={setSelectedStream} variant="full" />
+          <LiveStreamCard key={s.videoId} stream={s} onPress={handleStreamPress} variant="full" />
         ))
       )}
       {filteredLive.length > 4 && (
@@ -367,7 +380,7 @@ export const LiveScreen: React.FC = () => {
           onSeeAll={filteredUpcoming.length > 5 ? () => setShowAllUpcoming((v) => !v) : undefined}
         />
         {displayUpcoming.map((s) => (
-          <LiveStreamCard key={s.videoId} stream={s} onPress={setSelectedStream} variant="compact" />
+          <LiveStreamCard key={s.videoId} stream={s} onPress={handleStreamPress} variant="compact" />
         ))}
         {filteredUpcoming.length > 5 && (
           <TouchableOpacity style={styles.showMoreBtn} onPress={() => setShowAllUpcoming((v) => !v)}>

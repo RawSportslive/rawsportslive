@@ -8,7 +8,7 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
-import { Play, Eye, Radio } from 'lucide-react-native';
+import { Play, Eye, Radio, ExternalLink } from 'lucide-react-native';
 import { LiveBadge, UpcomingBadge } from './LiveBadge';
 import { CountdownTimer } from './CountdownTimer';
 import { LiveStream } from '../services/liveVideoService';
@@ -51,8 +51,12 @@ export const LiveStreamCard: React.FC<LiveStreamCardProps> = ({
           <View style={styles.compactThumbWrapper}>
             <Image source={{ uri: stream.thumbnail }} style={styles.compactThumb} />
             {isLive && (
-              <View style={styles.compactPlayIcon}>
-                <Radio color="#fff" size={12} fill="#fff" />
+              <View style={[styles.compactPlayIcon, stream.embedBlocked && { backgroundColor: '#FF0000' }]}>
+                {stream.embedBlocked ? (
+                  <ExternalLink color="#fff" size={10} />
+                ) : (
+                  <Radio color="#fff" size={12} fill="#fff" />
+                )}
               </View>
             )}
           </View>
@@ -108,9 +112,13 @@ export const LiveStreamCard: React.FC<LiveStreamCardProps> = ({
               <CountdownTimer targetIso={stream.scheduledStartTime} />
             )}
           </View>
-          {/* Big play button center */}
-          <View style={styles.featuredPlayBtn}>
-            <Play color="#fff" size={22} fill="#fff" />
+          {/* Big play/redirect button center */}
+          <View style={[styles.featuredPlayBtn, stream.embedBlocked && { backgroundColor: '#FF0000', shadowColor: '#FF0000' }]}>
+            {stream.embedBlocked ? (
+              <ExternalLink color="#fff" size={20} />
+            ) : (
+              <Play color="#fff" size={22} fill="#fff" />
+            )}
           </View>
         </TouchableOpacity>
       </Animated.View>
@@ -136,10 +144,14 @@ export const LiveStreamCard: React.FC<LiveStreamCardProps> = ({
           <View style={styles.badgePosition}>
             {isLive ? <LiveBadge size="md" /> : <UpcomingBadge />}
           </View>
-          {/* Play button */}
+          {/* Play/redirect button */}
           {isLive && (
-            <View style={styles.playCircle}>
-              <Radio color="#fff" size={18} fill="#fff" />
+            <View style={[styles.playCircle, stream.embedBlocked && { backgroundColor: '#FF0000', shadowColor: '#FF0000' }]}>
+              {stream.embedBlocked ? (
+                <ExternalLink color="#fff" size={16} />
+              ) : (
+                <Radio color="#fff" size={18} fill="#fff" />
+              )}
             </View>
           )}
         </View>

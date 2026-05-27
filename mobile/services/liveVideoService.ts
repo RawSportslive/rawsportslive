@@ -30,6 +30,7 @@ export interface LiveStream {
   publishedAt: string;
   sourceLabel: string;  // e.g. "© WWE — Official YouTube Channel"
   embedUrl: string;
+  embedBlocked?: boolean;
 }
 
 export interface LiveStreamsResponse {
