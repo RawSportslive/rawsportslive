@@ -301,10 +301,20 @@ export default function LiveClient({
 function LiveCard({ stream, onClick }: { stream: LiveStream; onClick: () => void }) {
   const isLive = stream.status === 'live';
   const color = SPORT_COLORS[stream.sport] || '#FFBF00';
+  const isBlocked = stream.embedBlocked;
+
+  const handleClick = () => {
+    if (isBlocked) {
+      // Open directly on YouTube for channels that block embedding
+      window.open(`https://www.youtube.com/channel/${stream.channelId}/live`, '_blank', 'noopener,noreferrer');
+    } else {
+      onClick();
+    }
+  };
 
   return (
     <div
-      onClick={onClick}
+      onClick={handleClick}
       className="group rounded-2xl overflow-hidden flex flex-col cursor-pointer transition-all duration-300"
       style={{ backgroundColor: '#fff', border: '1px solid #e8e8e8', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}
       onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 20px rgba(0,0,0,0.1)'; }}
@@ -342,10 +352,14 @@ function LiveCard({ stream, onClick }: { stream: LiveStream; onClick: () => void
           )}
         </div>
 
-        {/* Play hover */}
+        {/* Play/YouTube hover */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.95)', boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}>
-            <Play size={16} fill="#111" color="#111" className="ml-0.5" />
+          <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: isBlocked ? '#FF0000' : 'rgba(255,255,255,0.95)', boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}>
+            {isBlocked ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-2.75 12.84 12.84 0 0 0-8.07 0A4.83 4.83 0 0 1 4.41 6.69 46.29 46.29 0 0 0 4 12a46.29 46.29 0 0 0 .41 5.31 4.83 4.83 0 0 1 3.77 2.75 12.84 12.84 0 0 0 8.07 0 4.83 4.83 0 0 1 3.77-2.75A46.29 46.29 0 0 0 20 12a46.29 46.29 0 0 0-.41-5.31zM10 15.5v-7l6 3.5z"/></svg>
+            ) : (
+              <Play size={16} fill="#111" color="#111" className="ml-0.5" />
+            )}
           </div>
         </div>
       </div>

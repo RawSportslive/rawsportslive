@@ -1,15 +1,19 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // OFFICIAL CHANNEL REGISTRY
-// Only verified, official channels. No Korean/Chinese/Japanese content.
+// embedBlocked: true = channel restricts third-party iframe embedding
+//   (these channels still appear as cards but open YouTube directly)
 // ─────────────────────────────────────────────────────────────────────────────
-export const OFFICIAL_CHANNELS: Record<string, { id: string; name: string; sport: string }[]> = {
+export const OFFICIAL_CHANNELS: Record<
+  string,
+  { id: string; name: string; sport: string; embedBlocked?: boolean }[]
+> = {
   wrestling: [
     { id: 'UCJ5v_MCY6GNUBTO8-D3XoAg', name: 'WWE', sport: 'wrestling' },
     { id: 'UCIr4vkCsn0tdTW2xZ1jRG1g', name: 'AEW', sport: 'wrestling' },
   ],
   football: [
     { id: 'UCpcTrCXblq78GZrTUTLWeBw', name: 'UEFA', sport: 'football' },
-    { id: 'UCG5qGWdu8nIRZqJ_GgDwQ-w', name: 'Premier League', sport: 'football' },
+    { id: 'UCG5qGWdu8nIRZqJ_GgDwQ-g', name: 'Premier League', sport: 'football', embedBlocked: true },
     { id: 'UCVGOWXDMhXmkjR0D-X0K1NQ', name: 'ESPN FC', sport: 'football' },
     { id: 'UCQZLqSyOLRa-7M0zEAp-IMA', name: 'FIFA', sport: 'football' },
   ],
@@ -18,19 +22,21 @@ export const OFFICIAL_CHANNELS: Record<string, { id: string; name: string; sport
     { id: 'UCiWrjBhlICf_L_RK5y6Vrxw', name: 'BCCI', sport: 'cricket' },
   ],
   basketball: [
-    { id: 'UCWJ2lWNubArHWmf3FIHbfcQ', name: 'NBA', sport: 'basketball' },
+    { id: 'UCWJ2lWNubArHWmf3FIHbfcQ', name: 'NBA', sport: 'basketball', embedBlocked: true },
     { id: 'UCsT5MlSLLBvXjlxsQAOFnfA', name: 'NBA G League', sport: 'basketball' },
   ],
   ufc: [
-    { id: 'UCvgfXK4nTYKudb0rFR6noLA', name: 'UFC', sport: 'ufc' },
+    // UFC and ONE block embedding — using alternative combat sports that allow embeds
+    { id: 'UCvgfXK4nTYKudb0rFR6noLA', name: 'UFC', sport: 'ufc', embedBlocked: true },
     { id: 'UCmfsfKgxFPSgCNoqRDAbcUQ', name: 'ONE Championship', sport: 'ufc' },
+    { id: 'UCIndMGLuegSbMhZFUSDO_uQ', name: 'Bellator MMA', sport: 'ufc' },
+    { id: 'UCYq5PJO-4dI42YMK8AKhfZA', name: 'PFL MMA', sport: 'ufc' },
   ],
   f1: [
-    // Formula 1 official channel blocks all third-party embedding (Formula One Management copyright)
-    // Using alternative motorsport channels that allow embedding:
+    // Formula 1 blocks embedding via Formula One Management copyright
+    { id: 'UCB_qr75-ydFVKSF9Dmo6izg', name: 'Formula 1', sport: 'f1', embedBlocked: true },
     { id: 'UCqQAFG5tJU3FHmj-HYvmEIA', name: 'MotoGP', sport: 'f1' },
     { id: 'UCGgKaTMhzEO3VPxmJ9JFx1g', name: 'NASCAR', sport: 'f1' },
-    { id: 'UCdSgKKwFVPIGmGQKMC9_dew', name: 'IndyCar', sport: 'f1' },
   ],
   tennis: [
     { id: 'UCzAYW60ZZ-rB8f-VqIsuPWg', name: 'ATP Tour', sport: 'tennis' },
@@ -65,4 +71,5 @@ export interface LiveStream {
   publishedAt: string;
   sourceLabel: string;
   embedUrl: string;
+  embedBlocked?: boolean;
 }

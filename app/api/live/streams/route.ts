@@ -16,7 +16,8 @@ const CACHE_TTL_MS = 5 * 60 * 1000;
 async function scrapeLiveStreamForChannel(
   channelId: string,
   channelName: string,
-  sport: string
+  sport: string,
+  embedBlocked?: boolean
 ): Promise<LiveStream[]> {
   try {
     const url = `https://www.youtube.com/channel/${channelId}/live`;
@@ -71,8 +72,8 @@ async function scrapeLiveStreamForChannel(
         publishedAt: new Date().toISOString(),
         actualStartTime: new Date().toISOString(),
         sourceLabel: `© ${channelName} — Official YouTube Channel`,
-        // Direct channel embed — works even without videoId, zero API quota
         embedUrl: `https://www.youtube.com/embed/live_stream?channel=${channelId}&autoplay=1`,
+        embedBlocked: embedBlocked ?? false,
       },
     ];
   } catch {
@@ -104,7 +105,7 @@ export async function GET(request: Request) {
     // Scrape all channels concurrently — no API quota used
     const results = await Promise.allSettled(
       channelsToQuery.map((ch) =>
-        scrapeLiveStreamForChannel(ch.id, ch.name, ch.sport)
+        scrapeLiveStreamForChannel(ch.id, ch.name, ch.sport, ch.embedBlocked)
       )
     );
 
