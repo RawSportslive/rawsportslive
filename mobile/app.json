@@ -27,6 +27,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "07b02d78-b99c-438c-8503-9844cda74775"
+      }
+    },
+    "owner": "rawsportslive"
   }
 }
