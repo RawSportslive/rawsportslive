@@ -12,12 +12,13 @@ import {
   Animated,
   Easing,
 } from 'react-native';
-import { Zap, Calendar as CalIcon, Film, Radio } from 'lucide-react-native';
+import { Zap, Calendar as CalIcon, Film, Radio, Newspaper } from 'lucide-react-native';
 
 import { SportsDashboardScreen } from './screens/SportsDashboardScreen';
 import { SchedulesScreen } from './screens/SchedulesScreen';
 import { VideoFeedScreen } from './screens/VideoFeedScreen';
 import { LiveScreen } from './screens/LiveScreen';
+import { NewsScreen } from './screens/NewsScreen';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,7 +40,7 @@ Notifications.setNotificationHandler({
   }),
 });
 
-type TabKey = 'home' | 'live' | 'schedules' | 'wrestling';
+type TabKey = 'home' | 'live' | 'schedules' | 'wrestling' | 'news';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabKey>('home');
@@ -131,6 +132,8 @@ export default function App() {
         return <SchedulesScreen />;
       case 'wrestling':
         return <VideoFeedScreen />;
+      case 'news':
+        return <NewsScreen />;
       default:
         return <SportsDashboardScreen onNavigateToSchedules={() => setActiveTab('schedules')} />;
     }
@@ -165,6 +168,13 @@ export default function App() {
       label: 'WWE PORTAL',
       renderIcon: (active) => (
         <Film color={active ? '#E50914' : '#555'} size={20} fill={active ? '#E50914' : 'transparent'} />
+      ),
+    },
+    {
+      key: 'news',
+      label: 'NEWS',
+      renderIcon: (active) => (
+        <Newspaper color={active ? '#E50914' : '#555'} size={20} fill={active ? '#E50914' : 'transparent'} />
       ),
     },
   ];
