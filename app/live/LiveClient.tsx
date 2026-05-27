@@ -18,6 +18,7 @@ interface LiveStream {
   publishedAt: string;
   sourceLabel: string;
   embedUrl: string;
+  embedBlocked?: boolean;
 }
 
 const SPORT_COLORS: Record<string, string> = {
