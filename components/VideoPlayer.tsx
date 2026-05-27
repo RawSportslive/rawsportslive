@@ -14,15 +14,16 @@ interface VideoPlayerProps {
   thumbnail?: string;
   recommendations?: any[];
   startAt?: number;
+  onPlaybackFailed?: () => void; // called when video cannot be played — parent hides the card
 }
 
-export default function VideoPlayer({ url, title, thumbnail, recommendations = [], startAt = 0 }: VideoPlayerProps) {
+export default function VideoPlayer({ url, title, thumbnail, recommendations = [], startAt = 0, onPlaybackFailed }: VideoPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isEnded, setIsEnded] = useState(false);
-  const [isPseudoLandscape, setIsPseudoLandscape] = useState(false);
+  // Pseudo-landscape fullscreen removed – native player handles rotation
   const [hasError, setHasError] = useState(false);
   const playerRef = useRef<any>(null);
   
@@ -203,48 +204,15 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
 
   const toggleFullscreen = async () => {
     if (!containerRef.current) return;
+    const doc = document as any;
+    const container = containerRef.current as any;
     try {
-      const doc = document as any;
-      const container = containerRef.current as any;
-      const isFs = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement);
-
-      if (isFs || isPseudoLandscape) {
+      if (doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement) {
         const exit = doc.exitFullscreen || doc.webkitExitFullscreen || doc.mozCancelFullScreen || doc.msExitFullscreen;
-        if (exit) {
-          try { await exit.call(doc); } catch (e) {}
-        }
-        setIsPseudoLandscape(false);
-        if (screen.orientation && screen.orientation.unlock) {
-          try { screen.orientation.unlock(); } catch (e) {}
-        }
+        if (exit) await exit.call(doc);
       } else {
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
-        const req = container.requestFullscreen || container.webkitRequestFullscreen || container.mozRequestFullScreen || container.msRequestFullscreen;
-        if (req) {
-          try { await req.call(container); } catch (e) {}
-        }
-
-        // Apply pseudo-landscape if mobile to rotate layout 90deg (bulletproof against system portrait locks)
-        if (isMobile) {
-          setIsPseudoLandscape(true);
-        }
-
-        // Wait for the browser to transition to fullscreen before locking orientation
-        setTimeout(async () => {
-          const orientation = screen.orientation as any;
-          if (orientation && orientation.lock) {
-            try {
-              await orientation.lock('landscape');
-            } catch (e) {
-              try {
-                await orientation.lock('landscape-primary');
-              } catch (err2) {
-                console.log("Landscape lock failed:", err2);
-              }
-            }
-          }
-        }, 250);
+        const request = container.requestFullscreen || container.webkitRequestFullscreen || container.mozRequestFullScreen || container.msRequestFullscreen;
+        if (request) await request.call(container);
       }
     } catch (err) {
       console.error("Fullscreen error:", err);
@@ -255,47 +223,11 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
   useEffect(() => {
     const doc = document as any;
     const isFs = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement);
-    const active = isPseudoLandscape || isFs;
-
-    if (active) {
+    if (isFs) {
       document.body.classList.add('fullscreen-active');
     } else {
       document.body.classList.remove('fullscreen-active');
     }
-
-    const handleFsChangeClass = () => {
-      const isFsNow = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement);
-      if (isFsNow || isPseudoLandscape) {
-        document.body.classList.add('fullscreen-active');
-      } else {
-        document.body.classList.remove('fullscreen-active');
-      }
-    };
-
-    document.addEventListener('fullscreenchange', handleFsChangeClass);
-    document.addEventListener('webkitfullscreenchange', handleFsChangeClass);
-    
-    return () => {
-      document.body.classList.remove('fullscreen-active');
-      document.removeEventListener('fullscreenchange', handleFsChangeClass);
-      document.removeEventListener('webkitfullscreenchange', handleFsChangeClass);
-    };
-  }, [isPseudoLandscape]);
-
-  useEffect(() => {
-    const handleFsChange = () => {
-      const doc = document as any;
-      const isFs = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement);
-      if (!isFs) {
-        setIsPseudoLandscape(false);
-      }
-    };
-    document.addEventListener('fullscreenchange', handleFsChange);
-    document.addEventListener('webkitfullscreenchange', handleFsChange);
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFsChange);
-      document.removeEventListener('webkitfullscreenchange', handleFsChange);
-    };
   }, []);
 
   const handleShare = async () => {
@@ -333,25 +265,22 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
       // Don't trigger if user is typing in an input
       if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
 
-      switch(e.code) {
-        case 'Space':
-          e.preventDefault();
-          !hasStarted ? startPlayback() : togglePlay();
-          break;
-        case 'ArrowRight':
-          skip(10);
-          break;
-        case 'ArrowLeft':
-          skip(-10);
-          break;
-        case 'KeyF':
-          toggleFullscreen();
-          break;
-        case 'KeyM':
-          toggleMute();
-          break;
-      }
-      resetTimer();
+        switch(e.code) {
+          case 'Space':
+            e.preventDefault();
+            !hasStarted ? startPlayback() : togglePlay();
+            break;
+          case 'ArrowRight':
+            skip(10);
+            break;
+          case 'ArrowLeft':
+            skip(-10);
+            break;
+          case 'KeyM':
+            toggleMute();
+            break;
+        }
+        resetTimer();
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -368,21 +297,7 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
       onMouseMove={resetTimer}
       onTouchStart={resetTimer}
       onClick={resetTimer}
-      style={isPseudoLandscape ? {
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100vh',
-        height: '100vw',
-        transform: 'translate(-50%, -50%) rotate(90deg)',
-        transformOrigin: 'center center',
-        marginLeft: '50vw',
-        marginTop: '50vh',
-        zIndex: 99999,
-        borderRadius: 0,
-        maxWidth: 'none',
-        maxHeight: 'none',
-      } : {}}
+      style={{}}
     >
       {isYoutube ? (
         <div className={`absolute inset-0 scale-[1.12] transition-opacity duration-700 ${hasStarted ? 'opacity-100' : 'opacity-0'}`}>
@@ -406,8 +321,12 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
             onReady={onReady}
             onStateChange={onStateChange}
             onError={(e) => {
-              console.log("YouTube Playback Error, showing fallback:", e);
-              setHasError(true);
+              console.log("YouTube Playback Error — removing video:", e);
+              if (onPlaybackFailed) {
+                onPlaybackFailed(); // silently close + hide card on parent
+              } else {
+                setHasError(true); // fallback if no callback provided
+              }
             }}
             className="w-full h-full"
           />
@@ -418,27 +337,12 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
         <video src={url} className="w-full h-full object-cover" />
       )}
 
-      {/* Fallback Overlay for Restricted Playbacks */}
+      {/* Error overlay removed – simply hide video if it cannot play */}
       {hasError && (
-        <div className="absolute inset-0 bg-black/95 flex flex-col items-center justify-center p-6 text-center z-[90]">
-          <div className="w-16 h-16 bg-[#FFBF00]/10 rounded-full flex items-center justify-center mb-4">
-            <svg className="w-8 h-8 text-[#FFBF00] fill-current animate-pulse" viewBox="0 0 24 24"><path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.545 12 3.545 12 3.545s-7.518 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.87.508 9.388.508 9.388.508s7.518 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-          </div>
-          <h4 className="text-base font-extrabold text-white uppercase tracking-wider mb-2">RAWSPORTS ARENA PLAYER</h4>
-          <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest max-w-xs mb-6 leading-relaxed">
-            LAUNCH THE OFFICIAL HD REPLAY VIA OUR PREMIUM HIGHLIGHT PARTNER
-          </p>
-          <a 
-            href={url} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="px-6 py-3 bg-[#FFBF00] hover:bg-red-700 text-white font-black text-[10.5px] uppercase tracking-widest rounded-xl transition-all shadow-[0_4px_20px_rgba(255,0,0,0.4)] active:scale-95 pointer-events-auto"
-          >
-            PLAY REPLAY IN HD
-          </a>
+        <div className="absolute inset-0 bg-black/95 flex items-center justify-center z-[90]">
+          <p className="text-gray-400 text-sm">Video cannot be played.</p>
         </div>
       )}
-
       {/* Central Play/Pause Controller (Only at beginning) */}
       <AnimatePresence>
         {(!hasStarted && showControls) && (
@@ -562,7 +466,7 @@ export default function VideoPlayer({ url, title, thumbnail, recommendations = [
             />
           </div>
 
-          <div className={`p-3 flex items-center justify-between ${isPseudoLandscape ? 'px-12' : ''}`}>
+          <div className="p-3 flex items-center justify-between">
             <div className="flex items-center gap-5">
               <button onClick={togglePlay} className="text-white hover:text-brand-red transition-colors">
                 {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}

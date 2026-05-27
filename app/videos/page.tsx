@@ -45,6 +45,13 @@ export default function VideosPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [historyPositions, setHistoryPositions] = useState<Record<string, number>>({});
   const [startAt, setStartAt] = useState(0);
+  // Track videos that failed to play — they are silently hidden
+  const [failedVideoIds, setFailedVideoIds] = useState<Set<string>>(new Set());
+
+  const markVideoFailed = (id: string) => {
+    setFailedVideoIds(prev => new Set([...prev, id]));
+    setSelectedVideo(null); // close player immediately
+  };
 
   // Fetch watch history
   useEffect(() => {
@@ -73,30 +80,37 @@ export default function VideosPage() {
     };
   }, [selectedVideo]);
 
+  // Block ANY video whose title contains non-English Asian script:
+  // CJK (Chinese), Hangul (Korean), Hiragana/Katakana (Japanese), Arabic, Thai, etc.
+  const ASIAN_SCRIPT_REGEX = /[\u3000-\u9fff\uac00-\ud7af\u3040-\u309f\u30a0-\u30ff\u0600-\u06ff\u0e00-\u0e7f]/;
+
+  const isBlockedVideo = (title: string) => ASIAN_SCRIPT_REGEX.test(title);
+
   const fetchAllVideos = useCallback(async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
     else setRefreshing(true);
     try {
       const manualSnap = await getDocs(query(collection(db, 'videos'), orderBy('createdAt', 'desc')));
-      const manualVideos = manualSnap.docs.map(doc => ({
-        id: doc.id, ...doc.data()
-      })) as Video[];
+      const manualVideos = manualSnap.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }) as Video)
+        .filter(v => !isBlockedVideo(v.title));
 
       const ytSnap = await getDocs(query(collection(db, 'youtube_videos'), orderBy('publishedAt', 'desc')));
-      const ytVideos = ytSnap.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          ytId: data.videoId,
-          title: decodeHtml(data.title),
-          thumbnail: data.thumbnail,
-          category: data.categories?.[0] || 'Latest',
-          categories: data.categories,
-          publishedAt: data.publishedAt,
-        } as Video;
-      });
+      const ytVideos = ytSnap.docs
+        .map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ytId: data.videoId,
+            title: decodeHtml(data.title),
+            thumbnail: data.thumbnail,
+            category: data.categories?.[0] || 'Latest',
+            categories: data.categories,
+            publishedAt: data.publishedAt,
+          } as Video;
+        })
+        .filter(v => !isBlockedVideo(v.title));
 
-      // Show real, live fetched multi-sport and WWE videos directly from your Firestore DB!
       setVideos([...manualVideos, ...ytVideos]);
     } catch (error) {
       console.error("Error fetching videos:", error);
@@ -132,6 +146,7 @@ export default function VideosPage() {
   }, [loading]);
 
   const filteredVideos = videos.filter(v => {
+    if (failedVideoIds.has(v.id)) return false; // hide permanently failed videos
     const matchesCategory = activeCategory === "All" || v.category === activeCategory || v.categories?.includes(activeCategory);
     const matchesSearch = v.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           (v.category && v.category.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -281,6 +296,7 @@ export default function VideosPage() {
                 thumbnail={selectedVideo.thumbnail}
                 recommendations={filteredVideos.filter(v => v.id !== selectedVideo.id)}
                 startAt={startAt}
+                onPlaybackFailed={() => markVideoFailed(selectedVideo.id)}
               />
               <div className="space-y-4 text-white">
                 <div>
