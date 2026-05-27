@@ -30,6 +30,7 @@ const SPORT_COLORS: Record<string, string> = {
   f1: '#EC4899',
   tennis: '#84CC16',
   esports: '#8B5CF6',
+  nepal: '#DC2626',
 };
 
 export default function LiveClient({
@@ -82,7 +83,7 @@ export default function LiveClient({
     return true;
   });
 
-  const allSports = ['all', 'wrestling', 'football', 'cricket', 'basketball', 'ufc', 'f1', 'tennis', 'esports'];
+  const allSports = ['all', 'wrestling', 'football', 'cricket', 'basketball', 'ufc', 'f1', 'tennis', 'esports', 'nepal'];
 
   return (
     <div className="min-h-screen pt-8 pb-24 w-full" style={{ backgroundColor: '#faf9f6', color: '#121212' }}>

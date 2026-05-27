@@ -32,13 +32,13 @@ async function scrapeLiveStreamForChannel(
     if (!res.ok) return [];
     const html = await res.text();
 
-    // Must have a live broadcast signal in the page
+    // Strict live detection:
+    // 1. Page must contain YouTube's own "isLive":true signal
+    // 2. Page must NOT contain LIVE_STREAM_OFFLINE (channel is off-air)
+    // This eliminates old replays/marathons that aren't real live broadcasts
     const isReallyLive =
-      html.includes('"isLive":true') ||
-      html.includes('"LIVE_STREAM_OFFLINE"') === false && (
-        html.includes('LIVE_STARTED') ||
-        html.includes('"liveStreamability"')
-      );
+      html.includes('"isLive":true') &&
+      !html.includes('LIVE_STREAM_OFFLINE');
 
     // Extract videoId — first match on the page
     const videoIdMatch = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
