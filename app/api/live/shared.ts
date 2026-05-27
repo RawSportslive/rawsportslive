@@ -26,8 +26,11 @@ export const OFFICIAL_CHANNELS: Record<string, { id: string; name: string; sport
     { id: 'UCmfsfKgxFPSgCNoqRDAbcUQ', name: 'ONE Championship', sport: 'ufc' },
   ],
   f1: [
-    { id: 'UCB_qr75-ydFVKSF9Dmo6izg', name: 'Formula 1', sport: 'f1' },
+    // Formula 1 official channel blocks all third-party embedding (Formula One Management copyright)
+    // Using alternative motorsport channels that allow embedding:
     { id: 'UCqQAFG5tJU3FHmj-HYvmEIA', name: 'MotoGP', sport: 'f1' },
+    { id: 'UCGgKaTMhzEO3VPxmJ9JFx1g', name: 'NASCAR', sport: 'f1' },
+    { id: 'UCdSgKKwFVPIGmGQKMC9_dew', name: 'IndyCar', sport: 'f1' },
   ],
   tennis: [
     { id: 'UCzAYW60ZZ-rB8f-VqIsuPWg', name: 'ATP Tour', sport: 'tennis' },

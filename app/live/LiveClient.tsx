@@ -46,6 +46,7 @@ export default function LiveClient({
   const [upcomingStreams, setUpcomingStreams] = useState<LiveStream[]>(initialUpcomingStreams);
   const [isRefetching, setIsRefetching] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<LiveStream | null>(null);
+  const [embedBlocked, setEmbedBlocked] = useState(false);
 
   const fetchData = async () => {
     setIsRefetching(true);
@@ -233,7 +234,7 @@ export default function LiveClient({
           <div className="w-full max-w-5xl rounded-2xl overflow-hidden flex flex-col" style={{ backgroundColor: '#fff', maxHeight: '92vh', border: '1px solid #e5e5e5' }}>
 
             <button
-              onClick={() => setSelectedVideo(null)}
+              onClick={() => { setSelectedVideo(null); setEmbedBlocked(false); }}
               className="absolute top-5 right-5 z-50 p-2.5 rounded-full transition-all cursor-pointer"
               style={{ backgroundColor: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255,255,255,0.1)' }}
             >
@@ -241,14 +242,35 @@ export default function LiveClient({
             </button>
 
             {/* Player — uses live_stream embed to always show current live, no quota */}
-            <div className="relative w-full shrink-0" style={{ paddingBottom: '56.25%' }}>
-              <iframe
-                src={`https://www.youtube.com/embed/live_stream?channel=${selectedVideo.channelId}&autoplay=1`}
-                title={selectedVideo.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="absolute inset-0 w-full h-full border-0"
-              />
+            <div className="relative w-full shrink-0" style={{ paddingBottom: '56.25%', backgroundColor: '#000' }}>
+              {embedBlocked ? (
+                // Fallback: channel blocked embedding (e.g. F1, NBC, Sky Sports)
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4" style={{ backgroundColor: '#0f0f0f' }}>
+                  <div className="text-center px-6">
+                    <p className="text-white font-bold text-sm mb-1">🔒 Embedding Blocked</p>
+                    <p className="text-gray-400 text-xs mb-4">{selectedVideo.channelName} has disabled playback on third-party sites.</p>
+                    <a
+                      href={`https://www.youtube.com/channel/${selectedVideo.channelId}/live`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all"
+                      style={{ backgroundColor: '#FF0000', color: '#fff' }}
+                    >
+                      ▶ Watch Live on YouTube
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <iframe
+                  key={selectedVideo.channelId}
+                  src={`https://www.youtube.com/embed/live_stream?channel=${selectedVideo.channelId}&autoplay=1`}
+                  title={selectedVideo.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="absolute inset-0 w-full h-full border-0"
+                  onError={() => setEmbedBlocked(true)}
+                />
+              )}
             </div>
 
             {/* Info */}
