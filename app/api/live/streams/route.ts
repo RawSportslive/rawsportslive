@@ -28,11 +28,9 @@ async function fetchLiveStreamsForChannel(
   const res = await fetch(url.toString(), { next: { revalidate: 3600 } });
   if (!res.ok) {
     const errJson = await res.json().catch(() => ({}));
+    const errorMessage = errJson?.error?.message || 'Unknown YouTube API error';
     const reason = errJson?.error?.errors?.[0]?.reason ?? '';
-    if (reason === 'quotaExceeded' || reason === 'dailyLimitExceeded') {
-      throw new Error('YOUTUBE_QUOTA_EXCEEDED');
-    }
-    return [];
+    throw new Error(`YOUTUBE_API_FAILED: ${errorMessage} (${reason})`);
   }
 
   const json = await res.json();
@@ -95,12 +93,21 @@ export async function GET(request: Request) {
     );
 
     const streams: LiveStream[] = [];
+    const errors: string[] = [];
     for (const r of results) {
       if (r.status === 'fulfilled') {
         streams.push(...r.value);
-      } else if (r.reason && r.reason.message === 'YOUTUBE_QUOTA_EXCEEDED') {
-        return NextResponse.json({ error: 'YouTube API Quota Exceeded. Please update your API key.' }, { status: 429 });
+      } else {
+        errors.push(r.reason?.message || 'Unknown error');
       }
+    }
+
+    if (errors.length > 0 && streams.length === 0) {
+      return NextResponse.json({ 
+        error: 'YouTube API request failed', 
+        details: errors, 
+        apiKeyUsed: apiKey.substring(0, 8) + '...'
+      }, { status: 502 });
     }
     
     const validStreams = streams.filter((s) => s.videoId);
@@ -115,6 +122,7 @@ export async function GET(request: Request) {
       cached: false,
       fetchedAt: new Date().toISOString(),
       totalLive: validStreams.length,
+      apiKeyUsed: apiKey
     });
   } catch (error) {
     console.error('[live/streams] Error:', error);
