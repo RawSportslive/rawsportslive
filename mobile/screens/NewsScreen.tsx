@@ -31,6 +31,13 @@ import {
 import { db } from '../firebaseConfig';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, increment } from 'firebase/firestore';
 
+const BG = '#faf9f6';
+const CARD_BG = '#ffffff';
+const BORDER = 'rgba(0,0,0,0.06)';
+const TEXT_PRIMARY = '#121212';
+const TEXT_SECONDARY = '#6a6a6a';
+const BRAND_RED = '#E50914';
+
 const { width } = Dimensions.get('window');
 const newsCategories = ["All", "Saved", "RAW", "SmackDown", "Rumors", "NXT", "Events", "WWE News", "Nepal"];
 
@@ -355,26 +362,26 @@ export const NewsScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#050505' },
+  container: { flex: 1, backgroundColor: BG },
 
   // Header
   header: {
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 12 : 36,
     paddingBottom: 14,
-    backgroundColor: '#050505',
+    backgroundColor: BG,
     borderBottomWidth: 1,
-    borderBottomColor: '#111',
+    borderBottomColor: BORDER,
   },
   headerTitle: {
-    color: '#fff',
+    color: TEXT_PRIMARY,
     fontSize: 24,
     fontWeight: '900',
     fontStyle: 'italic',
     letterSpacing: 1.2,
   },
   headerSub: {
-    color: '#555',
+    color: TEXT_SECONDARY,
     fontSize: 9,
     fontWeight: '900',
     letterSpacing: 2,
@@ -386,19 +393,19 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0f0f0f',
+    backgroundColor: CARD_BG,
     borderRadius: 12,
     paddingHorizontal: 14,
     height: 44,
     marginHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#1a1a1a',
+    borderColor: BORDER,
     gap: 10,
     marginBottom: 10,
   },
   searchInput: {
     flex: 1,
-    color: '#fff',
+    color: TEXT_PRIMARY,
     fontSize: 13,
     fontWeight: '600',
   },
@@ -408,16 +415,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 10,
-    backgroundColor: '#0f0f0f',
+    backgroundColor: CARD_BG,
     borderWidth: 1,
-    borderColor: '#111',
+    borderColor: BORDER,
   },
   selectedCategoryTab: {
-    backgroundColor: '#E50914',
-    borderColor: '#E50914',
+    backgroundColor: BRAND_RED,
+    borderColor: BRAND_RED,
   },
   categoryTabText: {
-    color: '#888',
+    color: TEXT_SECONDARY,
     fontSize: 10,
     fontWeight: '700',
     textTransform: 'uppercase',
@@ -431,17 +438,22 @@ const styles = StyleSheet.create({
   // List Cards
   listContent: { padding: 16, paddingBottom: 32 },
   card: {
-    backgroundColor: '#0f0f0f',
+    backgroundColor: CARD_BG,
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#1a1a1a',
+    borderColor: BORDER,
     marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
   },
   cardImageContainer: {
     width: '100%',
     height: width * 0.52,
-    backgroundColor: '#111',
+    backgroundColor: '#f0ece4',
     position: 'relative',
   },
   cardImage: { width: '100%', height: '100%' },
@@ -449,7 +461,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 12,
     left: 12,
-    backgroundColor: '#E50914',
+    backgroundColor: BRAND_RED,
     borderRadius: 5,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -462,14 +474,14 @@ const styles = StyleSheet.create({
   },
   cardBody: { padding: 16 },
   cardTitle: {
-    color: '#fff',
+    color: TEXT_PRIMARY,
     fontSize: 15,
     fontWeight: '900',
     lineHeight: 20,
     marginBottom: 6,
   },
   cardExcerpt: {
-    color: '#888',
+    color: TEXT_SECONDARY,
     fontSize: 12,
     lineHeight: 18,
     marginBottom: 14,
@@ -479,35 +491,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderTopWidth: 1,
-    borderTopColor: '#1a1a1a',
+    borderTopColor: BORDER,
     paddingTop: 12,
   },
   authorContainer: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, marginRight: 10 },
-  authorText: { color: '#666', fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
+  authorText: { color: TEXT_SECONDARY, fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
   footerActions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   metaStat: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  metaStatText: { color: '#555', fontSize: 10, fontWeight: '700' },
+  metaStatText: { color: TEXT_SECONDARY, fontSize: 10, fontWeight: '700' },
   actionBtn: { padding: 4 },
 
   // Loading & empty
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
-  emptyTitle: { color: '#fff', fontSize: 16, fontWeight: '900', marginTop: 16, marginBottom: 8, letterSpacing: 0.5 },
-  emptyText: { color: '#555', fontSize: 12, textAlign: 'center', lineHeight: 18 },
+  emptyTitle: { color: TEXT_PRIMARY, fontSize: 16, fontWeight: '900', marginTop: 16, marginBottom: 8, letterSpacing: 0.5 },
+  emptyText: { color: TEXT_SECONDARY, fontSize: 12, textAlign: 'center', lineHeight: 18 },
 
   // Modal Detail
-  modalContainer: { flex: 1, backgroundColor: '#050505' },
+  modalContainer: { flex: 1, backgroundColor: BG },
   modalScroll: { flex: 1 },
   modalImageWrapper: {
     width: '100%',
     height: width * 0.75,
     position: 'relative',
-    backgroundColor: '#111',
+    backgroundColor: '#f0ece4',
   },
   modalImage: { width: '100%', height: '100%' },
   modalOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
   modalCloseBtn: {
     position: 'absolute',
@@ -528,7 +540,7 @@ const styles = StyleSheet.create({
     right: 20,
   },
   modalCategoryText: {
-    backgroundColor: '#E50914',
+    backgroundColor: BRAND_RED,
     color: '#fff',
     alignSelf: 'flex-start',
     paddingHorizontal: 8,
@@ -551,16 +563,16 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#111',
+    borderBottomColor: BORDER,
     paddingBottom: 16,
     marginBottom: 20,
   },
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  metaItemText: { color: '#888', fontSize: 10, fontWeight: '900' },
+  metaItemText: { color: TEXT_SECONDARY, fontSize: 10, fontWeight: '900' },
   contentParagraphs: { gap: 14 },
-  paragraphText: { color: '#ccc', fontSize: 14, lineHeight: 22, fontWeight: '500' },
+  paragraphText: { color: TEXT_PRIMARY, fontSize: 14, lineHeight: 22, fontWeight: '500' },
   originalLinkBtn: {
-    backgroundColor: '#E50914',
+    backgroundColor: BRAND_RED,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',

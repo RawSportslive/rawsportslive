@@ -18,6 +18,13 @@ import { useLiveMatches } from '../hooks/useSportsData';
 import { PlayCircle, Trophy, RefreshCw, Zap } from 'lucide-react-native';
 import { LiveMatch } from '../services/sportsApi';
 
+const BG = '#faf9f6';
+const CARD_BG = '#ffffff';
+const BORDER = 'rgba(0,0,0,0.06)';
+const TEXT_PRIMARY = '#121212';
+const TEXT_SECONDARY = '#6a6a6a';
+const BRAND_RED = '#E50914';
+
 const { width } = Dimensions.get('window');
 
 interface SportsDashboardScreenProps {
@@ -67,9 +74,9 @@ export const SportsDashboardScreen: React.FC<SportsDashboardScreenProps> = ({ on
           activeOpacity={0.7}
         >
           {isRefetching ? (
-            <ActivityIndicator color="#ffffff" size="small" />
+            <ActivityIndicator color={BRAND_RED} size="small" />
           ) : (
-            <RefreshCw color="#ffffff" size={16} />
+            <RefreshCw color={TEXT_SECONDARY} size={16} />
           )}
         </TouchableOpacity>
       </View>
@@ -136,7 +143,7 @@ export const SportsDashboardScreen: React.FC<SportsDashboardScreenProps> = ({ on
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#050505',
+    backgroundColor: BG,
   },
   header: {
     flexDirection: 'row',
@@ -145,19 +152,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 12 : 36,
     paddingBottom: 12,
-    backgroundColor: '#050505',
+    backgroundColor: BG,
     borderBottomWidth: 1,
-    borderBottomColor: '#151515',
+    borderBottomColor: BORDER,
   },
   headerTitle: {
-    color: '#ffffff',
+    color: TEXT_PRIMARY,
     fontSize: 24,
     fontWeight: '900',
     fontStyle: 'italic',
     letterSpacing: 1.2,
   },
   headerSubtitle: {
-    color: '#aaaaaa',
+    color: TEXT_SECONDARY,
     fontSize: 9,
     fontWeight: 'bold',
     letterSpacing: 1.5,
@@ -167,18 +174,18 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#151515',
+    backgroundColor: '#f0ece4',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#222222',
+    borderColor: BORDER,
   },
   tickerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#121212',
+    backgroundColor: '#fff8f0',
     borderBottomWidth: 1,
-    borderBottomColor: '#222222',
+    borderBottomColor: BORDER,
     paddingHorizontal: 20,
     paddingVertical: 8,
     gap: 10,
@@ -186,19 +193,19 @@ const styles = StyleSheet.create({
   tickerIcon: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E5091420',
+    backgroundColor: BRAND_RED + '18',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
     gap: 4,
   },
   tickerBadgeText: {
-    color: '#E50914',
+    color: BRAND_RED,
     fontSize: 8,
     fontWeight: '900',
   },
   tickerText: {
-    color: '#aaaaaa',
+    color: TEXT_SECONDARY,
     fontSize: 11,
     fontWeight: 'bold',
     flex: 1,
@@ -210,7 +217,7 @@ const styles = StyleSheet.create({
     padding: 40,
   },
   loadingText: {
-    color: '#888888',
+    color: TEXT_SECONDARY,
     fontSize: 12,
     fontWeight: 'bold',
     marginTop: 15,
@@ -226,14 +233,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   emptyHeader: {
-    color: '#ffffff',
+    color: TEXT_PRIMARY,
     fontSize: 16,
     fontWeight: '900',
     letterSpacing: 1,
     marginBottom: 8,
   },
   emptySub: {
-    color: '#666666',
+    color: TEXT_SECONDARY,
     fontSize: 12,
     fontWeight: 'bold',
     lineHeight: 18,
@@ -244,12 +251,12 @@ const styles = StyleSheet.create({
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E50914',
+    backgroundColor: BRAND_RED,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 25,
     gap: 8,
-    shadowColor: '#E50914',
+    shadowColor: BRAND_RED,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

@@ -37,7 +37,7 @@ export const SportsSelector: React.FC<SportsSelectorProps> = ({ activeSport, onS
                 isActive ? styles.activeTab : styles.inactiveTab,
               ]}
             >
-              <Text style={styles.tabText}>
+              <Text style={[styles.tabText, isActive ? styles.activeTabText : styles.inactiveTabText]}>
                 {sport.icon ? `${sport.icon}  ` : ''}
                 {sport.name}
               </Text>
@@ -56,10 +56,10 @@ export const SportsSelector: React.FC<SportsSelectorProps> = ({ activeSport, onS
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#050505',
+    backgroundColor: '#faf9f6',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#121212',
+    borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -74,29 +74,35 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   activeTab: {
-    backgroundColor: '#FFBF00',
-    borderColor: '#FFBF00',
+    backgroundColor: '#E50914',
+    borderColor: '#E50914',
   },
   inactiveTab: {
-    backgroundColor: '#121212',
-    borderColor: '#222222',
+    backgroundColor: '#ffffff',
+    borderColor: 'rgba(0,0,0,0.08)',
+  },
+  activeTabText: {
+    color: '#ffffff',
+  },
+  inactiveTabText: {
+    color: '#121212',
   },
   tabText: {
-    color: '#ffffff',
     fontSize: 13,
     fontWeight: 'bold',
   },
   badge: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#E50914',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 8,
     marginLeft: 8,
   },
   badgeText: {
-    color: '#FFBF00',
+    color: '#ffffff',
     fontSize: 9,
     fontWeight: '900',
     textTransform: 'uppercase',
   },
 });
+

@@ -16,6 +16,13 @@ import { SportsSelector } from '../components/SportsSelector';
 import { useFixtures, useStandings } from '../hooks/useSportsData';
 import { Calendar, Award, Star } from 'lucide-react-native';
 
+const BG = '#faf9f6';
+const CARD_BG = '#ffffff';
+const BORDER = 'rgba(0,0,0,0.06)';
+const TEXT_PRIMARY = '#121212';
+const TEXT_SECONDARY = '#6a6a6a';
+const BRAND_RED = '#E50914';
+
 const { width } = Dimensions.get('window');
 
 export const SchedulesScreen = () => {
@@ -217,25 +224,25 @@ export const SchedulesScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#050505',
+    backgroundColor: BG,
   },
   header: {
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 12 : 36,
     paddingBottom: 12,
-    backgroundColor: '#050505',
+    backgroundColor: BG,
     borderBottomWidth: 1,
-    borderBottomColor: '#151515',
+    borderBottomColor: BORDER,
   },
   headerTitle: {
-    color: '#ffffff',
+    color: TEXT_PRIMARY,
     fontSize: 22,
     fontWeight: '900',
     fontStyle: 'italic',
     letterSpacing: 1,
   },
   headerSubtitle: {
-    color: '#aaaaaa',
+    color: TEXT_SECONDARY,
     fontSize: 9,
     fontWeight: 'bold',
     letterSpacing: 1.5,
@@ -243,12 +250,12 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#121212',
+    backgroundColor: '#f0ece4',
     marginHorizontal: 20,
     marginVertical: 15,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#222222',
+    borderColor: BORDER,
     padding: 4,
   },
   tab: {
@@ -261,7 +268,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   activeTab: {
-    backgroundColor: '#E50914',
+    backgroundColor: BRAND_RED,
   },
   inactiveTab: {
     backgroundColor: 'transparent',
@@ -275,7 +282,7 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   inactiveTabText: {
-    color: '#666666',
+    color: TEXT_SECONDARY,
   },
   centerContainer: {
     flex: 1,
@@ -284,7 +291,7 @@ const styles = StyleSheet.create({
     padding: 40,
   },
   loadingText: {
-    color: '#888888',
+    color: TEXT_SECONDARY,
     fontSize: 12,
     fontWeight: 'bold',
     marginTop: 15,
@@ -294,29 +301,34 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   fixtureCard: {
-    backgroundColor: '#121212',
+    backgroundColor: CARD_BG,
     borderRadius: 16,
-    borderColor: '#222222',
+    borderColor: BORDER,
     borderWidth: 1,
     padding: 16,
     marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
   },
   fixtureHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#222222',
+    borderBottomColor: BORDER,
     paddingBottom: 8,
     marginBottom: 12,
   },
   fixtureLeague: {
-    color: '#E50914',
+    color: BRAND_RED,
     fontSize: 11,
     fontWeight: '900',
   },
   fixtureTime: {
-    color: '#888888',
+    color: TEXT_SECONDARY,
     fontSize: 10,
     fontWeight: 'bold',
   },
@@ -340,18 +352,18 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#222222',
+    backgroundColor: '#f0ece4',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 6,
   },
   logoLetter: {
-    color: '#ffffff',
+    color: TEXT_PRIMARY,
     fontSize: 16,
     fontWeight: 'bold',
   },
   teamName: {
-    color: '#ffffff',
+    color: TEXT_PRIMARY,
     fontSize: 12,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -361,19 +373,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   vsText: {
-    color: '#E50914',
+    color: BRAND_RED,
     fontSize: 14,
     fontWeight: '900',
     fontStyle: 'italic',
   },
   dateLabel: {
-    color: '#666666',
+    color: TEXT_SECONDARY,
     fontSize: 9,
     fontWeight: 'bold',
     marginTop: 4,
   },
   venueText: {
-    color: '#555555',
+    color: TEXT_SECONDARY,
     fontSize: 10,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -384,8 +396,8 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   tableContainer: {
-    backgroundColor: '#121212',
-    borderColor: '#222222',
+    backgroundColor: CARD_BG,
+    borderColor: BORDER,
     borderWidth: 1,
     borderRadius: 16,
     overflow: 'hidden',
@@ -393,14 +405,14 @@ const styles = StyleSheet.create({
   tableRowHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#f5f1e8',
     paddingVertical: 14,
     paddingHorizontal: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#222222',
+    borderBottomColor: BORDER,
   },
   cellHeader: {
-    color: '#666666',
+    color: TEXT_SECONDARY,
     fontSize: 10,
     fontWeight: '900',
     textAlign: 'center',
@@ -411,10 +423,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#222222',
+    borderBottomColor: BORDER,
   },
   cellText: {
-    color: '#aaaaaa',
+    color: TEXT_SECONDARY,
     fontSize: 12,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -433,10 +445,10 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#222222',
+    backgroundColor: '#f0ece4',
   },
   teamNameText: {
-    color: '#ffffff',
+    color: TEXT_PRIMARY,
     fontSize: 12,
     fontWeight: 'bold',
     flex: 1,
@@ -454,7 +466,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   formLetter: {
-    color: '#050505',
+    color: '#faf9f6',
     fontSize: 8,
     fontWeight: '900',
   },
@@ -464,14 +476,14 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyHeader: {
-    color: '#ffffff',
+    color: TEXT_PRIMARY,
     fontSize: 14,
     fontWeight: '900',
     letterSpacing: 1,
     marginBottom: 6,
   },
   emptySub: {
-    color: '#666666',
+    color: TEXT_SECONDARY,
     fontSize: 11,
     fontWeight: 'bold',
     textAlign: 'center',

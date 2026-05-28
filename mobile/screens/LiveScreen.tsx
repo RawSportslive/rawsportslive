@@ -41,6 +41,13 @@ import { useLiveHub } from '../hooks/useLiveStreams';
 import { LiveStream } from '../services/liveVideoService';
 import { SPORT_COLORS, SportKey } from '../constants/liveChannels';
 
+const BG = '#faf9f6';
+const CARD_BG = '#ffffff';
+const BORDER = 'rgba(0,0,0,0.06)';
+const TEXT_PRIMARY = '#121212';
+const TEXT_SECONDARY = '#6a6a6a';
+const BRAND_RED = '#E50914';
+
 const { width } = Dimensions.get('window');
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -479,7 +486,7 @@ export const LiveScreen: React.FC = () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#050505' },
+  container: { flex: 1, backgroundColor: BG },
 
   // Header
   header: {
@@ -489,9 +496,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 12 : 36,
     paddingBottom: 14,
-    backgroundColor: '#050505',
+    backgroundColor: BG,
     borderBottomWidth: 1,
-    borderBottomColor: '#111',
+    borderBottomColor: BORDER,
   },
   headerTitleRow: {
     flexDirection: 'row',
@@ -499,14 +506,14 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   headerTitle: {
-    color: '#fff',
+    color: TEXT_PRIMARY,
     fontSize: 24,
     fontWeight: '900',
     fontStyle: 'italic',
     letterSpacing: 1.2,
   },
   headerSub: {
-    color: '#555',
+    color: TEXT_SECONDARY,
     fontSize: 9,
     fontWeight: '900',
     letterSpacing: 2,
@@ -516,11 +523,11 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#151515',
+    backgroundColor: '#f0ece4',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#222',
+    borderColor: BORDER,
   },
 
   // Search
@@ -528,17 +535,17 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0f0f0f',
+    backgroundColor: CARD_BG,
     borderRadius: 12,
     paddingHorizontal: 14,
     height: 44,
     borderWidth: 1,
-    borderColor: '#1a1a1a',
+    borderColor: BORDER,
     gap: 10,
   },
   searchInput: {
     flex: 1,
-    color: '#fff',
+    color: TEXT_PRIMARY,
     fontSize: 13,
     fontWeight: '600',
   },
@@ -559,7 +566,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionTitle: {
-    color: '#aaa',
+    color: TEXT_SECONDARY,
     fontSize: 11,
     fontWeight: '900',
     letterSpacing: 1.8,
@@ -580,7 +587,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   seeAllText: {
-    color: '#555',
+    color: TEXT_SECONDARY,
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.8,
@@ -596,7 +603,7 @@ const styles = StyleSheet.create({
   // Show more
   showMoreBtn: {
     borderWidth: 1,
-    borderColor: '#1e1e1e',
+    borderColor: BORDER,
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: 'center',
@@ -604,7 +611,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   showMoreText: {
-    color: '#555',
+    color: TEXT_SECONDARY,
     fontSize: 10,
     fontWeight: '900',
     letterSpacing: 1.2,
@@ -621,14 +628,14 @@ const styles = StyleSheet.create({
   },
   emptyIcon: { fontSize: 40, marginBottom: 12 },
   emptyTitle: {
-    color: '#fff',
+    color: TEXT_PRIMARY,
     fontSize: 15,
     fontWeight: '900',
     marginBottom: 8,
     letterSpacing: 0.5,
   },
   emptySub: {
-    color: '#555',
+    color: TEXT_SECONDARY,
     fontSize: 12,
     fontWeight: '500',
     textAlign: 'center',
@@ -651,7 +658,7 @@ const styles = StyleSheet.create({
   },
   complianceText: {
     flex: 1,
-    color: '#555',
+    color: TEXT_SECONDARY,
     fontSize: 10,
     fontWeight: '500',
     lineHeight: 15,
@@ -670,6 +677,7 @@ const styles = StyleSheet.create({
   videoInfoScroll: {
     flex: 1,
     padding: 20,
+    backgroundColor: BG,
   },
   closeBtn: {
     position: 'absolute',
@@ -679,7 +687,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     borderWidth: 1,
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -709,7 +717,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   videoTitle: {
-    color: '#fff',
+    color: TEXT_PRIMARY,
     fontSize: 18,
     fontWeight: '800',
     lineHeight: 26,
@@ -750,7 +758,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   videoDesc: {
-    color: '#666',
+    color: TEXT_SECONDARY,
     fontSize: 13,
     lineHeight: 20,
   },

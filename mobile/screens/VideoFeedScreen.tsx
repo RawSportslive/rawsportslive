@@ -37,7 +37,12 @@ import { CategoryTabs } from '../components/CategoryTabs';
 import { VideoCard } from '../components/VideoCard';
 import { SkeletonLoader } from '../components/SkeletonLoader';
 
-// ScreenOrientation removed — lockAsync causes Android Activity recreation (app refresh bug)
+const BG = '#faf9f6';
+const CARD_BG = '#ffffff';
+const BORDER = 'rgba(0,0,0,0.06)';
+const TEXT_PRIMARY = '#121212';
+const TEXT_SECONDARY = '#6a6a6a';
+const BRAND_RED = '#E50914';
 
 const { width, height } = Dimensions.get('window');
 const PAGE_SIZE = 6;
@@ -422,7 +427,7 @@ export const VideoFeedScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#050505',
+    backgroundColor: BG,
   },
   header: {
     flexDirection: 'row',
@@ -430,19 +435,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 12 : 36,
     paddingBottom: 12,
-    backgroundColor: '#050505',
+    backgroundColor: BG,
     borderBottomWidth: 1,
-    borderBottomColor: '#151515',
+    borderBottomColor: BORDER,
   },
   headerTitle: {
-    color: '#fff',
+    color: TEXT_PRIMARY,
     fontSize: 26,
     fontWeight: '900',
     fontStyle: 'italic',
     letterSpacing: 1.5,
   },
   badge: {
-    backgroundColor: '#E50914',
+    backgroundColor: BRAND_RED,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
@@ -460,16 +465,16 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#111111',
+    backgroundColor: CARD_BG,
     borderRadius: 14,
     paddingHorizontal: 15,
     height: 48,
     borderWidth: 1,
-    borderColor: '#222222',
+    borderColor: BORDER,
   },
   searchInput: {
     flex: 1,
-    color: '#fff',
+    color: TEXT_PRIMARY,
     marginLeft: 10,
     fontSize: 14,
     fontWeight: 'bold',
@@ -488,7 +493,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionTitle: {
-    color: '#888',
+    color: TEXT_SECONDARY,
     fontSize: 11,
     fontWeight: '900',
     letterSpacing: 1.5,
@@ -503,14 +508,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     position: 'relative',
-    backgroundColor: '#151515',
+    backgroundColor: '#f0ece4',
     borderWidth: 1,
-    borderColor: '#252525',
+    borderColor: BORDER,
   },
   carouselImage: {
     width: '100%',
     height: '100%',
-    opacity: 0.8,
+    opacity: 0.9,
   },
   carouselPlayOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -522,7 +527,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#E50914',
+    backgroundColor: BRAND_RED,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -542,7 +547,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#151515',
+    backgroundColor: BORDER,
     marginVertical: 20,
   },
   loader: {
@@ -553,7 +558,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    color: '#666',
+    color: TEXT_SECONDARY,
     fontSize: 14,
     fontWeight: 'bold',
   },
@@ -568,12 +573,12 @@ const styles = StyleSheet.create({
     zIndex: 9999,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E50914',
+    backgroundColor: BRAND_RED,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
     gap: 6,
-    shadowColor: '#E50914',
+    shadowColor: BRAND_RED,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -592,9 +597,10 @@ const styles = StyleSheet.create({
   modalInfo: {
     flex: 1,
     padding: 20,
+    backgroundColor: BG,
   },
   modalTitle: {
-    color: '#fff',
+    color: TEXT_PRIMARY,
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
@@ -606,20 +612,20 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   channelLabel: {
-    color: '#E50914',
+    color: BRAND_RED,
     fontSize: 12,
     fontWeight: 'bold',
   },
   metaDivider: {
-    color: '#444',
+    color: TEXT_SECONDARY,
     marginHorizontal: 8,
   },
   dateLabel: {
-    color: '#666',
+    color: TEXT_SECONDARY,
     fontSize: 12,
   },
   modalDesc: {
-    color: '#ccc',
+    color: TEXT_SECONDARY,
     fontSize: 14,
     lineHeight: 22,
   }
