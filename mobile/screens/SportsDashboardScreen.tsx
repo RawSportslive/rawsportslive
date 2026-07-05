@@ -10,7 +10,8 @@ import {
   ScrollView,
   Dimensions,
   Image,
-  Platform
+  Platform,
+  StatusBar
 } from 'react-native';
 import { SportsSelector } from '../components/SportsSelector';
 import { LiveScoreCard } from '../components/LiveScoreCard';
@@ -150,7 +151,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 12 : 36,
+    paddingTop: Platform.OS === 'ios' ? 12 : (StatusBar.currentHeight || 24) + 8,
     paddingBottom: 12,
     backgroundColor: BG,
     borderBottomWidth: 1,

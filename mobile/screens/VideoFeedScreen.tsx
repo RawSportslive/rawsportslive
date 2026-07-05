@@ -334,7 +334,7 @@ export const VideoFeedScreen = () => {
 
               <View style={[
                 styles.playerWrapper,
-                isLandscape ? { marginTop: 0, width: windowWidth, height: windowHeight } : { marginTop: Platform.OS === 'ios' ? 108 : 88 }
+                isLandscape ? { marginTop: 0, width: windowWidth, height: windowHeight } : { marginTop: Platform.OS === 'ios' ? 108 : (StatusBar.currentHeight || 24) + 64 }
               ]}>
                 {hasError ? (
                   <WebView
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 12 : 36,
+    paddingTop: Platform.OS === 'ios' ? 12 : (StatusBar.currentHeight || 24) + 8,
     paddingBottom: 12,
     backgroundColor: BG,
     borderBottomWidth: 1,
@@ -568,7 +568,7 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 44 : 24,
+    top: Platform.OS === 'ios' ? 44 : (StatusBar.currentHeight || 24) + 8,
     right: 20,
     zIndex: 9999,
     flexDirection: 'row',
@@ -592,7 +592,7 @@ const styles = StyleSheet.create({
   },
   playerWrapper: {
     flex: 1,
-    marginTop: Platform.OS === 'ios' ? 108 : 88,
+    marginTop: Platform.OS === 'ios' ? 108 : (StatusBar.currentHeight || 24) + 64,
   },
   modalInfo: {
     flex: 1,

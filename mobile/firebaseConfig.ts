@@ -4,13 +4,13 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBwNbegQIrZicq7_GItryuyESSQdle7fM4",
-  authDomain: "sportsview-75296.firebaseapp.com",
-  projectId: "sportsview-75296",
-  storageBucket: "sportsview-75296.firebasestorage.app",
-  messagingSenderId: "100551356578",
-  appId: "1:100551356578:web:b6154ea790a1bc88af67fb",
-  measurementId: "G-ZDGFZLFE5K"
+  apiKey: "AIzaSyDPZyvJ_AfKaF2iJorxRnY9GRpSb41lDJ4",
+  authDomain: "rawsportslive-4b556.firebaseapp.com",
+  projectId: "rawsportslive-4b556",
+  storageBucket: "rawsportslive-4b556.firebasestorage.app",
+  messagingSenderId: "434982559115",
+  appId: "1:434982559115:web:92d35c78aee4507bd9238e",
+  measurementId: "G-2EQ83E8FZX"
 };
 
 // Initialize Firebase

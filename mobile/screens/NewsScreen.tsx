@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
   // Header
   header: {
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 12 : 36,
+    paddingTop: Platform.OS === 'ios' ? 12 : (StatusBar.currentHeight || 24) + 8,
     paddingBottom: 14,
     backgroundColor: BG,
     borderBottomWidth: 1,
@@ -523,7 +523,7 @@ const styles = StyleSheet.create({
   },
   modalCloseBtn: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 44 : 24,
+    top: Platform.OS === 'ios' ? 44 : (StatusBar.currentHeight || 24) + 8,
     right: 20,
     width: 40,
     height: 40,

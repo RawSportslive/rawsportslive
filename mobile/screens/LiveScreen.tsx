@@ -137,7 +137,7 @@ const PlayerModal: React.FC<PlayerModalProps> = ({ stream, onClose }) => {
         {/* Player Area takes full screen in Landscape with 0 margin */}
         <View style={[
           styles.playerArea, 
-          isLandscape ? { marginTop: 0, width: windowWidth, height: windowHeight } : { marginTop: Platform.OS === 'ios' ? 90 : 72 }
+          isLandscape ? { marginTop: 0, width: windowWidth, height: windowHeight } : { marginTop: Platform.OS === 'ios' ? 90 : (StatusBar.currentHeight || 24) + 48 }
         ]}>
           {useWebView ? (
             <WebView
@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 12 : 36,
+    paddingTop: Platform.OS === 'ios' ? 12 : (StatusBar.currentHeight || 24) + 8,
     paddingBottom: 14,
     backgroundColor: BG,
     borderBottomWidth: 1,
@@ -671,7 +671,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   playerArea: {
-    marginTop: Platform.OS === 'ios' ? 90 : 72,
+    marginTop: Platform.OS === 'ios' ? 90 : (StatusBar.currentHeight || 24) + 48,
     backgroundColor: '#000',
   },
   videoInfoScroll: {
@@ -681,7 +681,7 @@ const styles = StyleSheet.create({
   },
   closeBtn: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 44 : 24,
+    top: Platform.OS === 'ios' ? 44 : (StatusBar.currentHeight || 24) + 8,
     right: 20,
     zIndex: 999,
     flexDirection: 'row',

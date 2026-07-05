@@ -12,6 +12,7 @@ import {
   TextInput,
   ActivityIndicator,
   Switch,
+  StatusBar,
 } from 'react-native';
 import {
   User,
@@ -353,7 +354,7 @@ const styles = StyleSheet.create({
 
   header: {
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 12 : 36,
+    paddingTop: Platform.OS === 'ios' ? 12 : (StatusBar.currentHeight || 24) + 8,
     paddingBottom: 14,
     backgroundColor: BG,
     borderBottomWidth: 1,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   StyleSheet, 
   Text, 
@@ -10,11 +10,15 @@ import {
   Image,
   Dimensions,
   TouchableOpacity,
-  Platform
+  Platform,
+  StatusBar,
+  Alert
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Notifications from 'expo-notifications';
 import { SportsSelector } from '../components/SportsSelector';
 import { useFixtures, useStandings } from '../hooks/useSportsData';
-import { Calendar, Award, Star } from 'lucide-react-native';
+import { Calendar, Award, Star, Bell } from 'lucide-react-native';
 
 const BG = '#faf9f6';
 const CARD_BG = '#ffffff';
@@ -33,6 +37,92 @@ export const SchedulesScreen = () => {
   const { data: standings = [], isLoading: loadingStandings, refetch: refetchStandings } = useStandings(activeSport);
 
   const isLoading = subTab === 'fixtures' ? loadingFixtures : loadingStandings;
+
+  const [reminders, setReminders] = useState<string[]>([]);
+
+  // Load reminders on mount
+  useEffect(() => {
+    const loadReminders = async () => {
+      try {
+        const saved = await AsyncStorage.getItem('rawsports_match_reminders');
+        if (saved) {
+          setReminders(JSON.parse(saved));
+        }
+      } catch (e) {
+        console.warn("Failed to load reminders:", e);
+      }
+    };
+    loadReminders();
+  }, []);
+
+  const toggleReminder = async (fixture: any) => {
+    const isScheduled = reminders.includes(fixture.id);
+    let updatedReminders: string[];
+
+    if (isScheduled) {
+      updatedReminders = reminders.filter(id => id !== fixture.id);
+      try {
+        const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+        const notification = scheduled.find(n => n.content.data?.fixtureId === fixture.id);
+        if (notification) {
+          await Notifications.cancelScheduledNotificationAsync(notification.identifier);
+        }
+      } catch (err) {
+        console.warn("Error cancelling notification:", err);
+      }
+      Alert.alert('Reminder Removed', `Alert removed for ${fixture.teamHome.name} vs ${fixture.teamAway.name}`);
+    } else {
+      try {
+        const { status } = await Notifications.getPermissionsAsync();
+        let finalStatus = status;
+        if (status !== 'granted') {
+          const { status: newStatus } = await Notifications.requestPermissionsAsync();
+          finalStatus = newStatus;
+        }
+        if (finalStatus !== 'granted') {
+          Alert.alert('Permission Denied', 'Notification permissions are required to set kickoff reminders!');
+          return;
+        }
+
+        const kickoffTime = new Date(fixture.date).getTime();
+        const now = Date.now();
+        const triggerTime = kickoffTime - 10 * 60 * 1000;
+
+        let seconds = 5;
+        if (triggerTime > now) {
+          seconds = Math.max(5, Math.floor((triggerTime - now) / 1000));
+        }
+
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: `⚽ Match Kickoff Reminder!`,
+            body: `${fixture.teamHome.name} vs ${fixture.teamAway.name} in ${fixture.league} starts in 10 minutes!`,
+            sound: true,
+            data: { fixtureId: fixture.id }
+          },
+          trigger: { seconds }
+        });
+
+        updatedReminders = [...reminders, fixture.id];
+        Alert.alert(
+          'Reminder Enabled',
+          triggerTime > now 
+            ? `You will be notified 10 minutes before kickoff.` 
+            : `Match is starting soon or already started! Notification scheduled.`
+        );
+      } catch (err) {
+        console.warn("Failed to set reminder:", err);
+        return;
+      }
+    }
+
+    setReminders(updatedReminders);
+    try {
+      await AsyncStorage.setItem('rawsports_match_reminders', JSON.stringify(updatedReminders));
+    } catch (e) {
+      console.warn("Failed to save reminders:", e);
+    }
+  };
 
   const handleRefresh = async () => {
     if (subTab === 'fixtures') {
@@ -107,9 +197,18 @@ export const SchedulesScreen = () => {
             <View style={styles.fixtureCard}>
               <View style={styles.fixtureHeader}>
                 <Text style={styles.fixtureLeague}>{item.league}</Text>
-                <Text style={styles.fixtureTime}>
-                  {new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <Text style={styles.fixtureTime}>
+                    {new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </Text>
+                  <TouchableOpacity onPress={() => toggleReminder(item)} style={{ padding: 4 }}>
+                    <Bell 
+                      color={reminders.includes(item.id) ? BRAND_RED : TEXT_SECONDARY} 
+                      size={14} 
+                      fill={reminders.includes(item.id) ? BRAND_RED : 'transparent'} 
+                    />
+                  </TouchableOpacity>
+                </View>
               </View>
 
               <View style={styles.fixtureMain}>
@@ -228,7 +327,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 12 : 36,
+    paddingTop: Platform.OS === 'ios' ? 12 : (StatusBar.currentHeight || 24) + 8,
     paddingBottom: 12,
     backgroundColor: BG,
     borderBottomWidth: 1,

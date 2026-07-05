@@ -12,6 +12,9 @@ function getAdminApp(): App {
   
   if (serviceAccount) {
     const parsed = JSON.parse(serviceAccount);
+    if (parsed.private_key) {
+      parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
+    }
     return initializeApp({
       credential: cert(parsed),
     });
